@@ -1,13 +1,12 @@
-import { PageHeader } from "@/components/shared/page-header";
+import { notFound } from "next/navigation";
+import { loadModel } from "@/lib/db/models";
+import { loadNodes } from "@/lib/db/nodes";
+import { ModelEditor } from "@/components/models/model-editor";
 
-export default function ModelEditorStub() {
-  return (
-    <>
-      <PageHeader title="Model editor" subtitle="Build and version a should-cost model" />
-      <div className="rounded-md border border-dashed border-hairline p-8 text-sm text-muted-foreground">
-        The cost-model editor — CBS tree, inline editing, index binding, and versioning — lands in
-        Phase 1.
-      </div>
-    </>
-  );
+export default async function ModelPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const model = await loadModel(id);
+  if (!model) notFound();
+  const nodes = await loadNodes(id);
+  return <ModelEditor model={model} nodes={nodes} />;
 }
