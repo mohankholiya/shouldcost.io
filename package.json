@@ -17,9 +17,11 @@
     "db:reset": "supabase db reset"
   },
   "dependencies": {
+    "@tailwindcss/postcss": "^4.3.2",
     "next": "^14.2.35",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "tailwindcss": "^4.3.2"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",

@@ -1,1 +1,71 @@
-/* replaced in Task 2 */
+@import "tailwindcss";
+
+@theme {
+  /* Color */
+  --color-canvas: #fafaf8;
+  --color-ink: #1a1a1a;
+  --color-hairline: #e5e5e0;
+  --color-muted: #6b6b66;
+
+  --color-petrol-50: #f1f6fa;
+  --color-petrol-100: #dce8f1;
+  --color-petrol-200: #bcd3e3;
+  --color-petrol-300: #8fb6cf;
+  --color-petrol-400: #5e90b3;
+  --color-petrol-500: #3c6f95;
+  --color-petrol-600: #0b3c5d; /* primary */
+  --color-petrol-700: #0a344f;
+  --color-petrol-800: #0c2d44;
+  --color-petrol-900: #0d2838;
+
+  --color-amber: #f59e0b; /* deltas / warnings only */
+  --color-favor: #059669; /* favorable gaps only */
+  --color-danger: #b91c1c;
+
+  /* Type */
+  --font-sans: var(--font-sans-next), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono-next), ui-monospace, monospace;
+
+  /* Radius */
+  --radius-sm: 2px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+
+  /* Shadow (overlay only) */
+  --shadow-overlay: 0 8px 24px rgba(13, 40, 56, 0.12), 0 2px 6px rgba(13, 40, 56, 0.06);
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    color: var(--color-ink);
+    background: var(--color-canvas);
+  }
+  body {
+    margin: 0;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-petrol-600);
+    outline-offset: 2px;
+  }
+  .num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+  /* density hook for tables */
+  [data-density="compact"] tbody td {
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+  }
+}
+
+/* Dark mode token overrides (toggle UI lands in Phase 4; structure correct now) */
+@media (prefers-color-scheme: dark) {
+  .dark {
+    --color-canvas: #0d1117;
+    --color-ink: #e6e6e0;
+    --color-hairline: #2a2f37;
+    --color-muted: #9a9a93;
+    --shadow-overlay: 0 8px 24px rgba(0, 0, 0, 0.4);
+  }
+}
