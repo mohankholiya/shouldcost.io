@@ -7,10 +7,20 @@ import { AnimatedCounter } from "@/components/number/animated-counter";
 import { SavedIndicator } from "@/components/shared/saved-indicator";
 import { PageHeader } from "@/components/shared/page-header";
 import { saveNodesAction } from "@/lib/actions/model";
+import { IndicesProvider } from "@/components/models/indices-context";
 import type { CostNodeRow } from "@/lib/model/types";
 import type { ModelHeader } from "@/lib/db/models";
+import type { IndexWithLatest } from "@/lib/db/indices";
 
-export function ModelEditor({ model, nodes }: { model: ModelHeader; nodes: CostNodeRow[] }) {
+export function ModelEditor({
+  model,
+  nodes,
+  indices,
+}: {
+  model: ModelHeader;
+  nodes: CostNodeRow[];
+  indices: IndexWithLatest[];
+}) {
   const hydrate = useEditorStore((s) => s.hydrate);
   useEffect(() => {
     hydrate(nodes);
@@ -65,7 +75,9 @@ export function ModelEditor({ model, nodes }: { model: ModelHeader; nodes: CostN
           </div>
         }
       />
-      <CbsTree />
+      <IndicesProvider value={indices}>
+        <CbsTree />
+      </IndicesProvider>
     </div>
   );
 }

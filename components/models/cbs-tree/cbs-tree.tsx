@@ -17,6 +17,7 @@ import { TextCell } from "./cells/text-cell";
 import { NumberCell } from "./cells/number-cell";
 import { MoneyCell } from "./cells/money-cell";
 import { RateSourceCell } from "./cells/rate-source-cell";
+import { IndexBinding } from "@/components/models/index-binding";
 
 type Row = { node: TreeNode; depth: number };
 
@@ -113,6 +114,7 @@ export function CbsTree() {
           const n = row.original.node;
           if (n.node_type !== "line") return null;
           if (n.formula) return <span className="text-xs text-muted-foreground">{n.formula}</span>;
+          if (n.rate_source === "index") return <IndexBinding id={n.id} />;
           return <MoneyCell id={n.id} />;
         },
       }),
