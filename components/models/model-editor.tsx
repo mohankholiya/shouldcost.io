@@ -9,6 +9,8 @@ import { PageHeader } from "@/components/shared/page-header";
 import { saveNodesAction } from "@/lib/actions/model";
 import { IndicesProvider } from "@/components/models/indices-context";
 import { VersionBar } from "@/components/models/version-bar";
+import { RollupDonut } from "@/components/models/charts/rollup-donut";
+import { TornadoChart } from "@/components/models/charts/tornado-chart";
 import type { CostNodeRow } from "@/lib/model/types";
 import type { ModelHeader } from "@/lib/db/models";
 import type { IndexWithLatest } from "@/lib/db/indices";
@@ -32,6 +34,10 @@ export function ModelEditor({
 
   const total = useEditorStore((s) => s.rollup.total);
   const status = useEditorStore((s) => s.saveStatus);
+  const nodesMap = useEditorStore((s) => s.nodes);
+  const order = useEditorStore((s) => s.order);
+  const rollup = useEditorStore((s) => s.rollup);
+  const currentNodes = order.map((id) => nodesMap[id]).filter(Boolean) as CostNodeRow[];
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -82,6 +88,10 @@ export function ModelEditor({
       <IndicesProvider value={indices}>
         <CbsTree />
       </IndicesProvider>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <RollupDonut nodes={currentNodes} rollup={rollup} />
+        <TornadoChart nodes={currentNodes} />
+      </div>
       <VersionBar modelId={model.id} versions={versions} />
     </div>
   );
