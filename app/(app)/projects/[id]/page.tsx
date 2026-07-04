@@ -3,6 +3,7 @@ import { createServerClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Badge } from "@/components/ui/badge";
+import { TemplatePicker } from "@/components/indices/template-picker";
 
 type ProjectRow = { id: string; name: string };
 type ModelRow = { id: string; name: string; status: string };
@@ -23,7 +24,11 @@ export default async function ProjectDetail({ params }: { params: Promise<{ id: 
 
   return (
     <>
-      <PageHeader title={(project as ProjectRow | null)?.name ?? "Project"} subtitle="Models in this project" />
+      <PageHeader
+        title={(project as ProjectRow | null)?.name ?? "Project"}
+        subtitle="Models in this project"
+        actions={<TemplatePicker projectId={id} />}
+      />
       {models.length === 0 ? (
         <EmptyState
           title="No models in this project"
