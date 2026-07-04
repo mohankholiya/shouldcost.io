@@ -8,18 +8,22 @@ import { SavedIndicator } from "@/components/shared/saved-indicator";
 import { PageHeader } from "@/components/shared/page-header";
 import { saveNodesAction } from "@/lib/actions/model";
 import { IndicesProvider } from "@/components/models/indices-context";
+import { VersionBar } from "@/components/models/version-bar";
 import type { CostNodeRow } from "@/lib/model/types";
 import type { ModelHeader } from "@/lib/db/models";
 import type { IndexWithLatest } from "@/lib/db/indices";
+import type { ModelVersion } from "@/lib/db/versions";
 
 export function ModelEditor({
   model,
   nodes,
   indices,
+  versions,
 }: {
   model: ModelHeader;
   nodes: CostNodeRow[];
   indices: IndexWithLatest[];
+  versions: ModelVersion[];
 }) {
   const hydrate = useEditorStore((s) => s.hydrate);
   useEffect(() => {
@@ -78,6 +82,7 @@ export function ModelEditor({
       <IndicesProvider value={indices}>
         <CbsTree />
       </IndicesProvider>
+      <VersionBar modelId={model.id} versions={versions} />
     </div>
   );
 }
