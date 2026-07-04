@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createServerClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
+import { NewProjectButton } from "@/components/shared/new-project-button";
 
 type ProjectRow = { id: string; name: string };
 
@@ -12,11 +13,16 @@ export default async function ProjectsPage() {
 
   return (
     <>
-      <PageHeader title="Projects" subtitle="Groups of related cost models" />
+      <PageHeader
+        title="Projects"
+        subtitle="Groups of related cost models"
+        actions={<NewProjectButton />}
+      />
       {projects.length === 0 ? (
         <EmptyState
           title="No projects yet"
           steps={["Create a project", "Add a cost model from a template", "Invite your team"]}
+          cta={<NewProjectButton />}
         />
       ) : (
         <ul className="divide-y divide-hairline overflow-hidden rounded-md border border-hairline">

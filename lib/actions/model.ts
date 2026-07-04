@@ -3,6 +3,22 @@ import { z } from "zod";
 import { saveNodes, loadNodes } from "@/lib/db/nodes";
 import { saveVersion } from "@/lib/db/versions";
 import { createModel } from "@/lib/db/models";
+import { getCurrentOrg } from "@/lib/db/orgs";
+import { createServerClient } from "@/lib/supabase/server";
+
+export async function createProjectAction(input: unknown) {
+  const { name } = z.object({ name: z.string().min(1) }).parse(input);
+  const org = await getCurrentOrg();
+  if (!org) throw new Error("No organization for the current user");
+  const supabase = await createServerClient();
+  const { data, error } = await supabase
+    .from("projects")
+    .insert({ org_id: org.org_id, name })
+    .select("id")
+    .single();
+  if (error) throw error;
+  return { id: data!.id as string };
+}
 
 const NodeSchema = z.object({
   id: z.string(),

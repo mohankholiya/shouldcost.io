@@ -22,3 +22,9 @@ playwright-report/
 test-results/
 next-env.d.ts
 *.tsbuildinfo
+
+.vercel
+.env*
+
+# one-time login link (local only)
+login-link.txt
