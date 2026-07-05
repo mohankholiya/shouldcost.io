@@ -83,3 +83,19 @@ export function templateToNodes(
   walk(cbs, null, 0);
   return rows;
 }
+
+/** Count cost models in an org (via projects). Used by entitlement enforcement. */
+export async function countModelsByOrg(orgId: string): Promise<number> {
+  const supabase = await createServerClient();
+  const { count, error } = await supabase
+    .from("cost_models")
+    .select("id", { count: "exact", head: true })
+    .in(
+      "project_id",
+      (await supabase.from("projects").select("id").eq("org_id", orgId)).data?.map(
+        (p) => (p as { id: string }).id,
+      ) ?? [],
+    );
+  if (error) throw error;
+  return count ?? 0;
+}
