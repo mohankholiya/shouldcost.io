@@ -21,7 +21,7 @@ export function UserMenu() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="rounded-md border border-hairline px-3 py-1 text-sm hover:bg-petrol-50">
+      <DropdownMenuTrigger className="rounded-md border border-hairline px-3 py-1 text-sm hover:bg-accent">
         Account
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

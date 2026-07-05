@@ -13,7 +13,7 @@ export function DensityToggle({
   onChange: (d: Density) => void;
 }) {
   return (
-    <div className="inline-flex overflow-hidden rounded-md border border-border">
+    <div className="inline-flex overflow-hidden rounded-md border border-hairline">
       {(["comfortable", "compact"] as const).map((d) => (
         <Button
           key={d}

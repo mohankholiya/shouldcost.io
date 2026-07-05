@@ -50,7 +50,7 @@ export function TemplatePicker({ projectId }: { projectId: string }) {
           <button
             onClick={() => choose("Untitled model")}
             disabled={pending !== null}
-            className="w-full rounded-md border border-dashed border-hairline p-3 text-left text-sm hover:bg-petrol-50 disabled:opacity-50"
+            className="w-full rounded-md border border-dashed border-hairline p-3 text-left text-sm hover:bg-accent disabled:opacity-50"
           >
             <div className="font-medium">Blank model</div>
             <div className="text-xs text-muted-foreground">Build the CBS from scratch</div>
@@ -61,7 +61,7 @@ export function TemplatePicker({ projectId }: { projectId: string }) {
               key={t.slug}
               onClick={() => choose(t.name, t.slug)}
               disabled={pending !== null}
-              className="w-full rounded-md border border-hairline p-3 text-left hover:bg-petrol-50 disabled:opacity-50"
+              className="w-full rounded-md border border-hairline p-3 text-left hover:bg-accent disabled:opacity-50"
             >
               <div className="flex items-center justify-between gap-2">
                 <span className="text-sm font-medium">{t.name}</span>
