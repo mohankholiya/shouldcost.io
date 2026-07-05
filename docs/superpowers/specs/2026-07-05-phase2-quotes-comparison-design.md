@@ -2,7 +2,7 @@
 
 **Project:** shouldcost.io
 **Phase:** 2 of 5
-**Status:** Draft — decisions assumed while user was away; **pending user confirmation + written-spec review**
+**Status:** Built (2026-07-05) — assumptions confirmed by user (negotiation core only; exports/share links deferred to Phase 3; same-currency quotes). Implemented per `docs/superpowers/plans/2026-07-05-phase2-quotes-comparison.md`. Saved-version baseline selector remains a deferred follow-up.
 **Date:** 2026-07-05
 **Builds on:** Phase 0 (foundation, schema incl. `quotes`/`quote_lines`) and Phase 1 (cost-model editor, live rollup, versioning, charts).
 
