@@ -1098,44 +1098,16 @@ git commit -m "Add subscription customer index and webhook idempotency table"
 **Files:**
 - Modify: `lib/actions/model.ts:62-68` (the `instantiateModelAction` body)
 - Modify: `components/indices/template-picker.tsx` (handle the new return shape + filter locked templates)
-- Test: `tests/unit/instantiate-model-action.test.ts` (schema + the entitlement-result type, no DB)
 
 **Interfaces:**
-- Consumes: `resolvePlan`, `canCreateModel`, `canUseTemplate`, `EntitlementError`, `Plan` (Task 1); `countModelsByOrg` (Task 2); `findActiveSubscriptionByOrg` (Task 2); `getCurrentOrg` (Task 2, now with `is_demo`).
+- Consumes: `resolvePlan`, `canCreateModel`, `canUseTemplate`, `Plan` (Task 1); `countModelsByOrg` (Task 2); `findActiveSubscriptionByOrg` (Task 2); `getCurrentOrg` (Task 2, now with `is_demo`).
 - Produces:
-  - `type InstantiateResult = { id: string } | { error: "MODELS_EXCEEDED" | "TEMPLATE_LOCKED"; requiredPlan: Plan }`
+  - `type InstantiateResult = { id: string } | { error: "MODELS_EXCEEDED" | "TEMPLATE_LOCKED"; requiredPlan: "pro" | "team" }`
   - the updated `instantiateModelAction(input: unknown): Promise<InstantiateResult>`
 
-> The pure decisions (`canCreateModel`, `canUseTemplate`, `resolvePlan`) are tested in Task 1. This task wires them into the action; the action-level path is validated by the e2e in Task 12. The test here pins the Zod schema and the result-type branch so a refactor can't silently revert the gate.
+> This is integration wiring, not a unit-testable unit: the action composes Task 1's pure decisions (`canCreateModel`, `canUseTemplate`, `resolvePlan`) with DB lookups. The pure decisions are unit-tested in Task 1; the integrated path (Free user blocked at the cap, template lock surfaced) is validated by the e2e in Task 12. No new unit test here — matches the Phase 2 precedent for wiring tasks.
 
-- [ ] **Step 1: Write the failing test**
-
-```typescript
-// tests/unit/instantiate-model-action.test.ts
-import { describe, it, expect } from "vitest";
-
-// The action imports server-only Supabase clients; we exercise the exported
-// schema shape by type only + a smoke import. The entitlement branching is
-// validated end-to-end in tests/e2e/model-cap.spec.ts (Task 12).
-describe("instantiateModelAction result type", () => {
-  it("exposes a union of success and entitlement-error shapes (compile-time contract)", async () => {
-    const mod = await import("@/lib/actions/model");
-    expect(typeof mod.instantiateModelAction).toBe("function");
-    // InstantiateResult is a union; both shapes are observable at runtime.
-    const ok: Awaited<ReturnType<typeof mod.instantiateModelAction>> = { id: "m1" };
-    const blocked = { error: "MODELS_EXCEEDED", requiredPlan: "pro" as const };
-    expect(ok.id).toBe("m1");
-    expect(blocked.error).toBe("MODELS_EXCEEDED");
-  });
-});
-```
-
-- [ ] **Step 2: Run test to verify it fails**
-
-Run: `pnpm vitest run tests/unit/instantiate-model-action.test.ts`
-Expected: FAIL — `InstantiateResult` not yet exported / action return type not widened.
-
-- [ ] **Step 3: Update `instantiateModelAction`**
+- [ ] **Step 1: Update `instantiateModelAction`**
 
 Replace the body of `instantiateModelAction` in `lib/actions/model.ts` (lines 62-68) with:
 
@@ -1185,7 +1157,7 @@ import { createModel, countModelsByOrg } from "@/lib/db/models";
 
 (Replace the existing `import { createModel } from "@/lib/db/models";` line; do not import `countModelsByOrg` from `subscriptions`.)
 
-- [ ] **Step 4: Update the template-picker caller**
+- [ ] **Step 2: Update the template-picker caller**
 
 In `components/indices/template-picker.tsx`, change `choose` to branch on the result and add entitlement filtering. Replace lines 19-31 (the `TemplatePicker` signature + `choose`):
 
@@ -1236,20 +1208,15 @@ And render the upgrade prompt when blocked — add before the closing `</SheetCo
 )}
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
-
-Run: `pnpm vitest run tests/unit/instantiate-model-action.test.ts`
-Expected: PASS.
-
-- [ ] **Step 6: Typecheck + lint**
+- [ ] **Step 3: Typecheck + lint**
 
 Run: `pnpm typecheck && pnpm lint`
 Expected: no errors. `TemplatePicker` now requires a `plan` prop — every caller must pass it. The only caller is `app/(app)/projects/[id]/page.tsx`; Task 11 updates it. If typecheck flags it before Task 11, that's expected — run `pnpm typecheck` again after Task 11.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 4: Commit**
 
 ```bash
-git add lib/actions/model.ts components/indices/template-picker.tsx tests/unit/instantiate-model-action.test.ts
+git add lib/actions/model.ts components/indices/template-picker.tsx
 git commit -m "Enforce model cap and template gate on instantiation"
 ```
 
@@ -1622,7 +1589,6 @@ import { ManageSubscriptionButton } from "./manage-button";
 import { getCurrentOrg } from "@/lib/db/orgs";
 import { findActiveSubscriptionByOrg } from "@/lib/db/subscriptions";
 import { resolvePlan, getEntitlement } from "@/lib/entitlements";
-import { fromMinor } from "@/lib/money";
 
 export default async function BillingPage() {
   const org = await getCurrentOrg();
@@ -1662,8 +1628,6 @@ export default async function BillingPage() {
     </>
   );
 }
-
-void fromMinor;
 ```
 
 - [ ] **Step 2: Write the portal button client component**
