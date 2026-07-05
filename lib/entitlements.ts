@@ -26,7 +26,7 @@ export const ENTITLEMENTS: Record<Plan, Entitlement> = {
     plan: "free",
     maxModels: 2,
     maxTemplates: 3,
-    accessibleTemplateSlugs: ["octcg-casing-tubing", "power-transformers", "epc-manhour-rate"],
+    accessibleTemplateSlugs: ["octg-casing-tubing", "power-transformers", "epc-manhour-rate"],
     maxSeats: 1,
     features: { ...NO_FEATURES },
     price: { monthly: 0, annual: 0 },

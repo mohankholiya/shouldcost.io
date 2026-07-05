@@ -16,7 +16,7 @@ describe("ENTITLEMENTS matrix", () => {
     expect(e.maxModels).toBe(2);
     expect(e.maxTemplates).toBe(3);
     expect(e.accessibleTemplateSlugs).toEqual([
-      "octcg-casing-tubing",
+      "octg-casing-tubing",
       "power-transformers",
       "epc-manhour-rate",
     ]);
@@ -53,7 +53,7 @@ describe("decisions", () => {
   });
 
   it("canUseTemplate allows showcase slugs on free, everything on paid", () => {
-    expect(canUseTemplate("free", "octcg-casing-tubing")).toBe(true);
+    expect(canUseTemplate("free", "octg-casing-tubing")).toBe(true);
     expect(canUseTemplate("free", "line-pipe")).toBe(false);
     expect(canUseTemplate("pro", "line-pipe")).toBe(true);
   });
