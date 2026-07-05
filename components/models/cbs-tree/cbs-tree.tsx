@@ -13,6 +13,7 @@ import { buildTree } from "@/lib/model/tree";
 import type { TreeNode } from "@/lib/model/types";
 import { formatCurrency } from "@/lib/format";
 import { Button } from "@/components/ui/button";
+import { Surface } from "@/components/ui/surface";
 import { TextCell } from "./cells/text-cell";
 import { NumberCell } from "./cells/number-cell";
 import { MoneyCell } from "./cells/money-cell";
@@ -172,7 +173,7 @@ export function CbsTree() {
   const table = useReactTable({ data: rows, columns, getCoreRowModel: getCoreRowModel() });
 
   return (
-    <div className="overflow-hidden rounded-md border border-hairline">
+    <Surface padding="none" className="overflow-hidden">
       <table className="w-full text-sm" data-density="compact">
         <thead className="border-b border-hairline bg-canvas">
           {table.getHeaderGroups().map((hg) => (
@@ -218,6 +219,6 @@ export function CbsTree() {
           Add group
         </Button>
       </div>
-    </div>
+    </Surface>
   );
 }

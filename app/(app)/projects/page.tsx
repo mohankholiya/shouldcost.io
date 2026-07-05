@@ -3,6 +3,7 @@ import { createServerClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { NewProjectButton } from "@/components/shared/new-project-button";
+import { Surface } from "@/components/ui/surface";
 
 type ProjectRow = { id: string; name: string };
 
@@ -25,15 +26,15 @@ export default async function ProjectsPage() {
           cta={<NewProjectButton />}
         />
       ) : (
-        <ul className="divide-y divide-hairline overflow-hidden rounded-md border border-hairline">
+        <Surface as="ul" padding="none" className="divide-y divide-hairline overflow-hidden">
           {projects.map((p) => (
             <li key={p.id}>
-              <Link href={`/projects/${p.id}`} className="block px-4 py-3 hover:bg-petrol-50">
+              <Link href={`/projects/${p.id}`} className="block px-4 py-3 hover:bg-accent">
                 {p.name}
               </Link>
             </li>
           ))}
-        </ul>
+        </Surface>
       )}
     </>
   );
