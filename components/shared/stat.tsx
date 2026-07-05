@@ -1,5 +1,6 @@
 import { AnimatedCounter } from "@/components/number/animated-counter";
 import { DeltaPill } from "@/components/number/delta-pill";
+import { Surface } from "@/components/ui/surface";
 
 export function Stat({
   label,
@@ -13,7 +14,7 @@ export function Stat({
   deltaMinor?: number;
 }) {
   return (
-    <div className="rounded-md border border-border bg-card p-4">
+    <Surface padding="md">
       <div className="text-xs text-muted-foreground">{label}</div>
       <div className="num mt-1 text-2xl font-semibold">
         <AnimatedCounter valueMinor={valueMinor} />
@@ -26,6 +27,6 @@ export function Stat({
       <div className="mt-1 text-[10px] text-muted-foreground">
         all values in {currency} · illustrative
       </div>
-    </div>
+    </Surface>
   );
 }

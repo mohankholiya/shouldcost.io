@@ -2,6 +2,7 @@
 
 import { Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Surface } from "@/components/ui/surface";
 
 /** Shared chart shell: title, copy-data (CSV to clipboard), and empty state. */
 export function ChartContainer({
@@ -21,7 +22,7 @@ export function ChartContainer({
   }
 
   return (
-    <div className="rounded-md border border-hairline bg-card p-4">
+    <Surface padding="md">
       <div className="mb-2 flex items-center justify-between">
         <h3 className="text-sm font-medium">{title}</h3>
         <Button size="icon-xs" variant="ghost" aria-label="Copy data" onClick={copyCsv}>
@@ -33,6 +34,6 @@ export function ChartContainer({
       ) : (
         children
       )}
-    </div>
+    </Surface>
   );
 }

@@ -1,5 +1,6 @@
 import { getCurrentOrg } from "@/lib/db/orgs";
 import { PageHeader } from "@/components/shared/page-header";
+import { Surface } from "@/components/ui/surface";
 
 export default async function SettingsPage() {
   const org = await getCurrentOrg();
@@ -9,7 +10,7 @@ export default async function SettingsPage() {
   return (
     <>
       <PageHeader title="Settings" subtitle="Organization and profile" />
-      <dl className="max-w-md space-y-4 rounded-md border border-hairline bg-card p-5 text-sm">
+      <Surface as="dl" padding="lg" className="max-w-md space-y-4 text-sm">
         <div className="flex justify-between">
           <dt className="text-muted-foreground">Organization</dt>
           <dd className="font-medium">{name}</dd>
@@ -22,7 +23,7 @@ export default async function SettingsPage() {
           <dt className="text-muted-foreground">Your role</dt>
           <dd className="font-medium capitalize">{org?.role ?? "—"}</dd>
         </div>
-      </dl>
+      </Surface>
     </>
   );
 }

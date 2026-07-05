@@ -4,6 +4,8 @@ import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { TemplatePicker } from "@/components/indices/template-picker";
+import { cn } from "@/lib/utils";
+import { surfaceVariants } from "@/components/ui/surface";
 
 type ProjectRow = { id: string; name: string };
 type ModelRow = { id: string; name: string; status: string };
@@ -40,7 +42,7 @@ export default async function ProjectDetail({ params }: { params: Promise<{ id: 
             <Link
               key={m.id}
               href={`/models/${m.id}`}
-              className="rounded-md border border-hairline bg-card p-4 hover:bg-petrol-50"
+              className={cn(surfaceVariants({ padding: "md", elevation: "interactive" }))}
             >
               <div className="font-medium">{m.name}</div>
               <div className="mt-2">

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatCurrency } from "@/lib/format";
 import { VersionDiff } from "@/components/models/version-diff";
+import { Surface } from "@/components/ui/surface";
 import type { ModelVersion } from "@/lib/db/versions";
 
 export function VersionBar({ modelId, versions }: { modelId: string; versions: ModelVersion[] }) {
@@ -35,7 +36,7 @@ export function VersionBar({ modelId, versions }: { modelId: string; versions: M
   const b = versions.find((v) => v.id === selected[1]);
 
   return (
-    <div className="rounded-md border border-hairline p-3">
+    <Surface padding="sm">
       <div className="flex items-center justify-between gap-2">
         <h3 className="text-sm font-medium">Versions</h3>
         <div className="flex items-center gap-2">
@@ -76,6 +77,6 @@ export function VersionBar({ modelId, versions }: { modelId: string; versions: M
       )}
 
       {a && b && <VersionDiff a={a} b={b} />}
-    </div>
+    </Surface>
   );
 }

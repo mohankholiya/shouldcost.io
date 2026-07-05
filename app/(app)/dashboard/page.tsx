@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/shared/page-header";
 import { KpiTile } from "@/components/shared/kpi-tile";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
+import { Surface } from "@/components/ui/surface";
 
 type ModelRow = {
   id: string;
@@ -58,14 +59,14 @@ export default async function DashboardPage() {
               currency="USD"
               hint={`Across ${models.length} model${models.length === 1 ? "" : "s"}`}
             />
-            <div className="rounded-lg border border-border bg-card p-5">
+            <Surface padding="lg" radius="lg">
               <div className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
                 Cost models
               </div>
               <div className="num mt-2 text-3xl font-semibold">{models.length}</div>
               <div className="mt-2 text-xs text-muted-foreground">Active across all projects</div>
-            </div>
-            <div className="rounded-lg border border-border bg-card p-5">
+            </Surface>
+            <Surface padding="lg" radius="lg">
               <div className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
                 Templates
               </div>
@@ -73,7 +74,7 @@ export default async function DashboardPage() {
               <div className="mt-2 text-xs text-muted-foreground">
                 Energy &amp; utilities categories
               </div>
-            </div>
+            </Surface>
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
             Demo data — illustrative values flagged for review, not certified cost audits.

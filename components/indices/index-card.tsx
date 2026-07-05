@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { IndexSparkline } from "@/components/models/charts/index-sparkline";
+import { cn } from "@/lib/utils";
+import { surfaceVariants } from "@/components/ui/surface";
 import type { IndexWithSeries } from "@/lib/db/indices";
 
 export function IndexCard({ index }: { index: IndexWithSeries }) {
   return (
     <Link
       href={`/indices/${index.code}`}
-      className="block rounded-md border border-hairline bg-card p-4 hover:bg-petrol-50"
+      className={cn(surfaceVariants({ padding: "md", elevation: "interactive" }), "block")}
     >
       <div className="flex items-center justify-between gap-2">
         <div className="font-medium">{index.name}</div>

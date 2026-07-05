@@ -1,6 +1,6 @@
 import { AnimatedCounter } from "@/components/number/animated-counter";
 import { DeltaPill } from "@/components/number/delta-pill";
-import { cn } from "@/lib/utils";
+import { Surface } from "@/components/ui/surface";
 
 /**
  * Portfolio-level metric tile. Larger and more prominent than Stat, for the
@@ -24,7 +24,7 @@ export function KpiTile({
   className?: string;
 }) {
   return (
-    <div className={cn("rounded-lg border border-border bg-card p-5", className)}>
+    <Surface padding="lg" radius="lg" className={className}>
       <div className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
         {label}
       </div>
@@ -38,6 +38,6 @@ export function KpiTile({
         </div>
       )}
       {hint && <div className="mt-2 text-xs text-muted-foreground">{hint}</div>}
-    </div>
+    </Surface>
   );
 }
