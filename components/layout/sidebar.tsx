@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, FolderKanban, TrendingUp, Settings } from "lucide-react";
+import { LayoutDashboard, FolderKanban, TrendingUp, Settings, Scale } from "lucide-react";
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -12,7 +12,9 @@ const NAV = [
   { href: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
-export function Sidebar() {
+type RecentModel = { id: string; name: string };
+
+export function Sidebar({ recentModels = [] }: { recentModels?: RecentModel[] }) {
   const path = usePathname();
   return (
     <aside className="hidden w-56 shrink-0 border-r border-hairline bg-canvas md:block">
@@ -29,8 +31,8 @@ export function Sidebar() {
               className={cn(
                 "flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors",
                 active
-                  ? "bg-petrol-50 font-medium text-petrol-700"
-                  : "text-foreground hover:bg-petrol-50",
+                  ? "bg-accent font-medium text-accent-foreground"
+                  : "text-ink hover:bg-accent",
               )}
             >
               <n.icon className="h-4 w-4" />
@@ -39,6 +41,40 @@ export function Sidebar() {
           );
         })}
       </nav>
+      {recentModels.length > 0 && (
+        <nav className="mt-2 space-y-0.5 px-3" aria-label="Recent models">
+          <div className="px-3 pb-1 text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
+            Recent
+          </div>
+          {recentModels.map((m) => {
+            const active = path.startsWith(`/models/${m.id}`);
+            return (
+              <div key={m.id} className="group flex items-center gap-1">
+                <Link
+                  href={`/models/${m.id}`}
+                  title={m.name}
+                  className={cn(
+                    "flex-1 truncate rounded-md px-3 py-1.5 text-sm transition-colors",
+                    active
+                      ? "bg-accent font-medium text-accent-foreground"
+                      : "text-ink hover:bg-accent",
+                  )}
+                >
+                  {m.name}
+                </Link>
+                <Link
+                  href={`/models/${m.id}/compare`}
+                  aria-label={`Compare quotes for ${m.name}`}
+                  title="Compare quotes"
+                  className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                >
+                  <Scale className="h-3.5 w-3.5" />
+                </Link>
+              </div>
+            );
+          })}
+        </nav>
+      )}
     </aside>
   );
 }

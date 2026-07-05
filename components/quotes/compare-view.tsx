@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { QuoteList } from "@/components/quotes/quote-list";
 import { QuoteForm } from "@/components/quotes/quote-form";
 import { ComparisonMatrix } from "@/components/quotes/comparison-matrix";
@@ -108,13 +109,22 @@ export function CompareView({
             onDeleted={refresh}
           />
           {comparison && (
-            <div className="space-y-6">
-              <ComparisonMatrix comparison={comparison} currency={currency} />
-              <div className="grid gap-4 lg:grid-cols-2">
+            <Tabs defaultValue="matrix" className="space-y-4">
+              <TabsList>
+                <TabsTrigger value="matrix">Matrix</TabsTrigger>
+                <TabsTrigger value="gap">Gap</TabsTrigger>
+                <TabsTrigger value="insights">Insights</TabsTrigger>
+              </TabsList>
+              <TabsContent value="matrix">
+                <ComparisonMatrix comparison={comparison} currency={currency} />
+              </TabsContent>
+              <TabsContent value="gap">
                 <GapWaterfall comparison={comparison} currency={currency} />
+              </TabsContent>
+              <TabsContent value="insights">
                 <InsightCards comparison={comparison} currency={currency} />
-              </div>
-            </div>
+              </TabsContent>
+            </Tabs>
           )}
         </div>
       )}
