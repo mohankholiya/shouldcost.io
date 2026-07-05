@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef } from "react";
+import { Button } from "@/components/ui/button";
 import { useEditorStore } from "@/lib/stores/editor-store";
 import { CbsTree } from "@/components/models/cbs-tree/cbs-tree";
 import { AnimatedCounter } from "@/components/number/animated-counter";
@@ -73,6 +75,9 @@ export function ModelEditor({
         subtitle="Cost-model editor"
         actions={
           <div className="flex items-center gap-4">
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/models/${model.id}/compare`}>Compare quotes</Link>
+            </Button>
             <div className="text-right">
               <div className="text-[10px] tracking-wide text-muted-foreground uppercase">
                 Should-cost ({model.currency})
