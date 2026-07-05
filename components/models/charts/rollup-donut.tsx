@@ -4,9 +4,8 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { ChartContainer } from "./chart-container";
 import { buildTree } from "@/lib/model/tree";
 import { formatCurrency } from "@/lib/format";
+import { rampColor } from "@/lib/chart-palette";
 import type { CostNodeRow, Rollup } from "@/lib/model/types";
-
-const COLORS = ["#0b3c5d", "#3c6f95", "#5e90b3", "#8fb6cf", "#bcd3e3", "#f59e0b", "#059669"];
 
 export type Slice = { name: string; value: number };
 
@@ -29,7 +28,7 @@ export function RollupDonut({ nodes, rollup }: { nodes: CostNodeRow[]; rollup: R
             <PieChart>
               <Pie data={data} dataKey="value" nameKey="name" innerRadius={40} outerRadius={70}>
                 {data.map((_, i) => (
-                  <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                  <Cell key={i} fill={rampColor(i)} />
                 ))}
               </Pie>
             </PieChart>
@@ -40,7 +39,7 @@ export function RollupDonut({ nodes, rollup }: { nodes: CostNodeRow[]; rollup: R
             <li key={d.name} className="flex items-center gap-2">
               <span
                 className="h-2 w-2 rounded-sm"
-                style={{ background: COLORS[i % COLORS.length] }}
+                style={{ background: rampColor(i) }}
               />
               <span>{d.name}</span>
               <span className="num text-muted-foreground">

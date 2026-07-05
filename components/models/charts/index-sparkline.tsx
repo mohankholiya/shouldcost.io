@@ -2,6 +2,7 @@
 
 import { LineChart, Line, ResponsiveContainer } from "recharts";
 import { formatIndexValue } from "@/lib/format";
+import { PETROL_600 } from "@/lib/chart-palette";
 
 export type SeriesPoint = { date: string; value: number };
 
@@ -23,7 +24,7 @@ export function IndexSparkline({ series, unit }: { series: SeriesPoint[]; unit: 
       <div className="h-8 w-24 shrink-0">
         <ResponsiveContainer>
           <LineChart data={series}>
-            <Line dataKey="value" stroke="#0b3c5d" dot={false} strokeWidth={1.5} />
+            <Line dataKey="value" stroke={PETROL_600} dot={false} strokeWidth={1.5} />
           </LineChart>
         </ResponsiveContainer>
       </div>

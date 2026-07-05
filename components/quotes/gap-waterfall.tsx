@@ -4,15 +4,9 @@ import { BarChart, Bar, XAxis, YAxis, Cell, ResponsiveContainer } from "recharts
 import { ChartContainer } from "@/components/models/charts/chart-container";
 import { waterfallData } from "@/lib/model/waterfall";
 import { formatCurrency } from "@/lib/format";
+import { PETROL_600, WATERFALL_FILL } from "@/lib/chart-palette";
 import type { Comparison } from "@/lib/model/comparison";
 import type { Currency } from "@/components/number/currency-select";
-
-const FILL: Record<string, string> = {
-  base: "#0b3c5d",
-  increase: "#b45309", // amber: quote above should-cost
-  decrease: "#15803d", // green: favorable
-  total: "#0b3c5d",
-};
 
 export function GapWaterfall({
   comparison,
@@ -48,7 +42,7 @@ export function GapWaterfall({
             <Bar dataKey="offset" stackId="w" fill="transparent" />
             <Bar dataKey="span" stackId="w" radius={2}>
               {data.map((d, i) => (
-                <Cell key={i} fill={FILL[d.kind] ?? "#0b3c5d"} />
+                <Cell key={i} fill={WATERFALL_FILL[d.kind] ?? PETROL_600} />
               ))}
             </Bar>
           </BarChart>

@@ -6,6 +6,7 @@ import { ChartContainer } from "./chart-container";
 import { tornado } from "@/lib/model/sensitivity";
 import { buildTree } from "@/lib/model/tree";
 import { formatCurrency } from "@/lib/format";
+import { PETROL_600 } from "@/lib/chart-palette";
 import type { CostNodeRow } from "@/lib/model/types";
 
 export function TornadoChart({ nodes }: { nodes: CostNodeRow[] }) {
@@ -33,7 +34,7 @@ export function TornadoChart({ nodes }: { nodes: CostNodeRow[] }) {
           <BarChart data={data} layout="vertical" margin={{ left: 8, right: 8 }}>
             <XAxis type="number" hide />
             <YAxis type="category" dataKey="name" width={120} tick={{ fontSize: 10 }} />
-            <Bar dataKey="swing" fill="#0b3c5d" radius={2} />
+            <Bar dataKey="swing" fill={PETROL_600} radius={2} />
           </BarChart>
         </ResponsiveContainer>
       </div>
