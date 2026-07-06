@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { getEntitlement } from "@/lib/entitlements";
 import type { Plan, Interval } from "@/lib/entitlements";
 import { createCheckoutSessionAction } from "@/lib/actions/billing";
+import { toast } from "sonner";
 
 const LABEL: Record<Plan, string> = { free: "Free", pro: "Pro", team: "Team" };
 
@@ -20,6 +21,9 @@ export function PlanCard({ plan, current }: { plan: Plan; current: Plan }) {
     try {
       const { url } = await createCheckoutSessionAction({ plan, interval });
       router.push(url);
+    } catch (err) {
+      console.error("checkout failed", err);
+      toast.error("Could not start checkout. Please try again.");
     } finally {
       setBusy(false);
     }
