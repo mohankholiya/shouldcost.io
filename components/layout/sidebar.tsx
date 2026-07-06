@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { LayoutDashboard, FolderKanban, TrendingUp, Settings, Scale } from "lucide-react";
+import { PlanBadge, ModelQuotaIndicator } from "@/components/billing";
+import type { Plan } from "@/lib/entitlements";
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -14,10 +16,18 @@ const NAV = [
 
 type RecentModel = { id: string; name: string };
 
-export function Sidebar({ recentModels = [] }: { recentModels?: RecentModel[] }) {
+export function Sidebar({
+  recentModels = [],
+  plan,
+  modelCount = 0,
+}: {
+  recentModels?: RecentModel[];
+  plan: Plan;
+  modelCount?: number;
+}) {
   const path = usePathname();
   return (
-    <aside className="hidden w-56 shrink-0 border-r border-hairline bg-canvas md:block">
+    <aside className="hidden w-56 shrink-0 flex-col border-r border-hairline bg-canvas md:flex">
       <div className="px-4 py-4 text-sm font-semibold tracking-tight">
         shouldcost<span className="text-primary">.io</span>
       </div>
@@ -75,6 +85,15 @@ export function Sidebar({ recentModels = [] }: { recentModels?: RecentModel[] })
           })}
         </nav>
       )}
+      <div className="mt-auto border-t border-hairline px-3 py-3">
+        <div className="flex items-center justify-between px-1">
+          <span className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
+            Plan
+          </span>
+          <PlanBadge plan={plan} />
+        </div>
+        <ModelQuotaIndicator plan={plan} used={modelCount} />
+      </div>
     </aside>
   );
 }
