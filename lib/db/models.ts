@@ -87,15 +87,19 @@ export function templateToNodes(
 /** Count cost models in an org (via projects). Used by entitlement enforcement. */
 export async function countModelsByOrg(orgId: string): Promise<number> {
   const supabase = await createServerClient();
+  const projectIds =
+    (await supabase.from("projects").select("id").eq("org_id", orgId)).data?.map(
+      (p) => (p as { id: string }).id,
+    ) ?? [];
+  // Short-circuit before the count query: `.in("project_id", [])` is
+  // PostgREST-version-dependent and can throw (rather than return zero
+  // rows), which would make instantiateModelAction throw on a brand-new
+  // Free user's FIRST model. Same guard pattern as lib/db/nodes.ts.
+  if (!projectIds.length) return 0;
   const { count, error } = await supabase
     .from("cost_models")
     .select("id", { count: "exact", head: true })
-    .in(
-      "project_id",
-      (await supabase.from("projects").select("id").eq("org_id", orgId)).data?.map(
-        (p) => (p as { id: string }).id,
-      ) ?? [],
-    );
+    .in("project_id", projectIds);
   if (error) throw error;
   return count ?? 0;
 }
