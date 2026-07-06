@@ -2,9 +2,11 @@
 import { z } from "zod";
 import { saveNodes, loadNodes } from "@/lib/db/nodes";
 import { saveVersion } from "@/lib/db/versions";
-import { createModel } from "@/lib/db/models";
+import { createModel, countModelsByOrg } from "@/lib/db/models";
 import { getCurrentOrg } from "@/lib/db/orgs";
 import { createServerClient } from "@/lib/supabase/server";
+import { resolvePlan, canCreateModel, canUseTemplate } from "@/lib/entitlements";
+import { findActiveSubscriptionByOrg } from "@/lib/db/subscriptions";
 
 export async function createProjectAction(input: unknown) {
   const { name } = z.object({ name: z.string().min(1) }).parse(input);
@@ -59,10 +61,29 @@ export async function saveVersionAction(input: unknown) {
   return { version_no };
 }
 
-export async function instantiateModelAction(input: unknown) {
+export type InstantiateResult =
+  | { id: string }
+  | { error: "MODELS_EXCEEDED" | "TEMPLATE_LOCKED"; requiredPlan: "pro" | "team" };
+
+export async function instantiateModelAction(input: unknown): Promise<InstantiateResult> {
   const { projectId, name, templateSlug } = z
     .object({ projectId: z.string(), name: z.string(), templateSlug: z.string().optional() })
     .parse(input);
+
+  const org = await getCurrentOrg();
+  if (!org?.organizations) throw new Error("No organization for the current user");
+  const isDemo = Boolean(org.organizations.is_demo);
+  const sub = await findActiveSubscriptionByOrg(org.org_id);
+  const plan = resolvePlan({ subscription: sub, isDemo });
+
+  if (templateSlug && !canUseTemplate(plan, templateSlug)) {
+    return { error: "TEMPLATE_LOCKED", requiredPlan: "pro" };
+  }
+  const count = await countModelsByOrg(org.org_id);
+  if (!canCreateModel(plan, count)) {
+    return { error: "MODELS_EXCEEDED", requiredPlan: "pro" };
+  }
+
   const id = await createModel(projectId, name, templateSlug);
   return { id };
 }

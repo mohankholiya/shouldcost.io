@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Plus } from "lucide-react";
 import {
   Sheet,
@@ -15,16 +16,25 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ALL_TEMPLATES } from "@/lib/seed/templates";
 import { instantiateModelAction } from "@/lib/actions/model";
+import { canUseTemplate, type Plan } from "@/lib/entitlements";
 
-export function TemplatePicker({ projectId }: { projectId: string }) {
+export function TemplatePicker({ projectId, plan }: { projectId: string; plan: Plan }) {
   const router = useRouter();
   const [pending, setPending] = useState<string | null>(null);
+  const [blocked, setBlocked] = useState<{
+    kind: "MODELS_EXCEEDED" | "TEMPLATE_LOCKED";
+    requiredPlan: Plan;
+  } | null>(null);
 
   async function choose(name: string, templateSlug?: string) {
     setPending(templateSlug ?? "__blank__");
     try {
-      const { id } = await instantiateModelAction({ projectId, name, templateSlug });
-      router.push(`/models/${id}`);
+      const res = await instantiateModelAction({ projectId, name, templateSlug });
+      if ("error" in res) {
+        setBlocked({ kind: res.error, requiredPlan: res.requiredPlan });
+        return;
+      }
+      router.push(`/models/${res.id}`);
     } finally {
       setPending(null);
     }
@@ -56,7 +66,7 @@ export function TemplatePicker({ projectId }: { projectId: string }) {
             <div className="text-xs text-muted-foreground">Build the CBS from scratch</div>
           </button>
 
-          {ALL_TEMPLATES.map((t) => (
+          {ALL_TEMPLATES.filter((t) => canUseTemplate(plan, t.slug)).map((t) => (
             <button
               key={t.slug}
               onClick={() => choose(t.name, t.slug)}
@@ -73,6 +83,27 @@ export function TemplatePicker({ projectId }: { projectId: string }) {
             </button>
           ))}
         </div>
+
+        {blocked && (
+          <div className="p-4 pt-0">
+            <div className="rounded-md border border-hairline bg-card p-3 text-sm">
+              <p className="font-medium">
+                {blocked.kind === "MODELS_EXCEEDED"
+                  ? "You've hit the 2-model Free limit"
+                  : "That template needs Pro"}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {blocked.requiredPlan === "team" ? "Team" : "Pro"} removes this limit.
+              </p>
+              <Link
+                href="/settings/billing/upgrade"
+                className="mt-2 inline-block text-xs font-medium text-primary hover:underline"
+              >
+                Upgrade →
+              </Link>
+            </div>
+          </div>
+        )}
       </SheetContent>
     </Sheet>
   );
