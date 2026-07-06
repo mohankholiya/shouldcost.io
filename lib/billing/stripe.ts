@@ -55,6 +55,14 @@ export function mapStripeEvent(event: Stripe.Event): BillingEvent {
     const orgId = (s.metadata?.org_id ?? "") as string;
     const customer = (typeof s.customer === "string" ? s.customer : s.customer?.id) ?? "";
     if (!orgId || !customer) return { eventId, kind: "unknown" };
+    // current_period_end moved from Subscription to SubscriptionItem in API
+    // version 2026-06-24.dahlia (stripe@22.x); read it off the first item.
+    // Fail-SAFE: if the field is absent (e.g. dashboard-pinned API version
+    // diverges from the SDK pin and the path reads undefined), treat it as
+    // "no expiry known" (null) so resolvePlan keeps the customer on their
+    // paid plan. A 0 here would yield new Date(0) (1970) and silently
+    // downgrade a paying customer to free — wrong polarity for billing.
+    const periodEnd = s.items?.data?.[0]?.current_period_end;
     return {
       eventId,
       kind: t === "customer.subscription.created" ? "subscription_created" : "subscription_updated",
@@ -62,9 +70,7 @@ export function mapStripeEvent(event: Stripe.Event): BillingEvent {
       plan: planFromSubscription(s),
       providerCustomerId: customer,
       status: s.status === "active" ? "active" : "past_due",
-      // current_period_end moved from Subscription to SubscriptionItem in API
-      // version 2026-06-24.dahlia (stripe@22.x); read it off the first item.
-      currentPeriodEnd: new Date((s.items?.data?.[0]?.current_period_end ?? 0) * 1000),
+      currentPeriodEnd: periodEnd ? new Date(periodEnd * 1000) : null,
     };
   }
   if (t === "customer.subscription.deleted") {

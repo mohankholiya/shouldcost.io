@@ -9,7 +9,8 @@ export type BillingEvent =
       plan: Plan;
       providerCustomerId: string;
       status: "active" | "past_due";
-      currentPeriodEnd: Date;
+      // null = "no expiry known" (field absent) — customer keeps their plan.
+      currentPeriodEnd: Date | null;
     }
   | { eventId: string; kind: "subscription_deleted"; orgId: string; providerCustomerId: string }
   | { eventId: string; kind: "unknown" };

@@ -46,6 +46,33 @@ describe("mapStripeEvent", () => {
     }
   });
 
+  it("fail-safe: a subscription with NO current_period_end yields null, not a 1970 date", () => {
+    // Mirrors the real failure mode: the dashboard-pinned API version
+    // diverges from the SDK pin, so current_period_end arrives on a
+    // different object path and the item field reads undefined. The
+    // customer must keep their plan (null = "no expiry known"), not be
+    // silently downgraded to free by a new Date(0) (1970) epoch.
+    const subNoPeriodEnd = {
+      id: "sub_no_period_end",
+      customer,
+      status: "active",
+      metadata: { org_id: "org-123" },
+      items: { data: [{ price: { id: "price_pro_monthly" } }] },
+    } as unknown as Stripe.Subscription;
+    const event = {
+      id: "evt_no_period_end",
+      type: "customer.subscription.updated",
+      data: { object: subNoPeriodEnd },
+    } as unknown as Stripe.Event;
+    const mapped = mapStripeEvent(event);
+    expect(mapped.kind).toBe("subscription_updated");
+    if (mapped.kind === "subscription_updated") {
+      expect(mapped.currentPeriodEnd).toBeNull();
+      // Guard against the regression: must NOT decode to the epoch.
+      expect(mapped.currentPeriodEnd).not.toEqual(new Date(0));
+    }
+  });
+
   it("maps subscription.deleted to subscription_deleted", () => {
     const event = {
       id: "evt_3",
