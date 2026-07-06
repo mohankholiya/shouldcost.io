@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getCurrentOrg } from "@/lib/db/orgs";
 import { PageHeader } from "@/components/shared/page-header";
 import { Surface } from "@/components/ui/surface";
@@ -18,6 +19,14 @@ export default async function SettingsPage() {
         <div className="flex justify-between">
           <dt className="text-muted-foreground">Plan</dt>
           <dd className="font-medium capitalize">{plan}</dd>
+        </div>
+        <div className="flex justify-between">
+          <dt className="text-muted-foreground">Billing</dt>
+          <dd>
+            <Link href="/settings/billing" className="font-medium text-primary hover:underline">
+              Manage →
+            </Link>
+          </dd>
         </div>
         <div className="flex justify-between">
           <dt className="text-muted-foreground">Your role</dt>
