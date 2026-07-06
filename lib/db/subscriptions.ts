@@ -2,7 +2,7 @@
 import "server-only";
 import { createServerClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { Plan } from "@/lib/entitlements";
+import type { Plan, SubscriptionSnapshot } from "@/lib/entitlements";
 
 export type SubscriptionRow = {
   org_id: string;
@@ -24,6 +24,12 @@ export async function findActiveSubscriptionByOrg(
     .maybeSingle();
   if (error) throw error;
   return (data as SubscriptionRow | null) ?? null;
+}
+
+/** Map a DB subscription row to the domain snapshot resolvePlan consumes. */
+export function toSnapshot(row: SubscriptionRow | null): SubscriptionSnapshot | null {
+  if (!row) return null;
+  return { plan: row.plan, status: row.status, currentPeriodEnd: row.current_period_end };
 }
 
 /** Admin write — called only from the verified webhook handler. */
