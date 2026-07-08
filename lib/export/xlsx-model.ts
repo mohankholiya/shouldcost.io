@@ -104,7 +104,11 @@ export function buildModelXlsx(input: BuildModelXlsxInput): Workbook {
   // address helpers — absolute Excel row = HEADER_ROWS + rowNumber (rowNumber is 1-based)
   const rowByNodeId = new Map<string, OrderedRow>();
   for (const o of rows) rowByNodeId.set(o.node.id, o);
-  const xRow = (id: string) => rowByNodeId.get(id) ?? rows[0]!;
+  const xRow = (id: string): OrderedRow => {
+    const found = rowByNodeId.get(id);
+    if (!found) throw new Error(`buildModelXlsx: unknown node id "${id}"`);
+    return found;
+  };
   const excelRow = (id: string) => HEADER_ROWS + xRow(id).rowNumber;
   const cellRef = (id: string, col: number) => `${colLetter(col)}${excelRow(id)}`;
   const amountCell = (id: string) => cellRef(id, COL.amountLive);
@@ -163,7 +167,7 @@ export function buildModelXlsx(input: BuildModelXlsxInput): Workbook {
     });
     const amountCellObj = ws.getCell(row, COL.amountLive);
     if (amountFormula === "0") {
-      // empty group — nothing to compute; write a literal 0
+      // empty group, or a line whose formula rollupLive zeroes — literal 0
       amountCellObj.value = 0;
     } else {
       amountCellObj.value = {
@@ -235,6 +239,10 @@ function buildAmountFormula(ctx: FormulaCtx): string {
       const rt = runningTotalBefore(nodeId, address, amountCell);
       return `ROUND(${pct}%*SUM(${rt.join(",") || "0"}),2)`;
     }
+    // Non-empty formula that doesn't match rollupLive's percent regexes:
+    // `evalFormula` returns 0 (the final `: 0`). Emit a literal 0 so the
+    // workbook recomputes to 0, not qty*rate.
+    return "0";
   }
 
   // plain line: qty * minor-rate, converted to major
@@ -264,8 +272,14 @@ function parsePercentFormula(formula: string): ParsedPercent | null {
 
 /**
  * Resolve a named-group reference (lowercased-name match, mirroring
- * `rollupLive`'s `ctx.named`) to the most-recently-evaluated group before
- * `fromId`. Returns the group's node id, or null if no match.
+ * `rollupLive`'s `ctx.named`) to the most-recently COMPLETED group before
+ * `fromId`. `rollupLive` registers a group in `ctx.named` only AFTER its
+ * subtree finishes evaluating (post-order / completion), so a group is an
+ * eligible target iff it was entered before `fromId` AND its entire subtree
+ * has also finished before `fromId`. In a pre-order flattening that is
+ * equivalent to: the group precedes `fromId` and is NOT an ancestor of it.
+ * Among eligible matches, the most recently completed wins (mirrors the
+ * last-write-wins on `ctx.named[name]`). Returns the group's id, or null.
  */
 function resolveNamedGroup(
   name: string,
@@ -274,12 +288,42 @@ function resolveNamedGroup(
   nodesById: Map<string, CostNodeRow>,
 ): string | null {
   const needle = name.toLowerCase();
+  const order = address.order as readonly string[];
+  const fromIdx = order.indexOf(fromId);
+  if (fromIdx < 0) return null;
+
+  // Ancestors of `fromId` are groups whose subtree contains it — they have
+  // NOT completed yet when rollupLive evaluates `fromId`, so they're ineligible.
+  const ancestors = new Set<string>();
+  for (let p = address.parentOf(fromId); p && p !== ROOT_PARENT; p = address.parentOf(p)) {
+    ancestors.add(p);
+  }
+
+  // Pre-order subtrees are contiguous: a node's subtree ends at its last
+  // descendant. Compute that index per node in one reverse pass (children are
+  // visited before parents, so each child's end is known before its parent's).
+  const subtreeEnd = new Map<string, number>();
+  for (let i = order.length - 1; i >= 0; i--) {
+    const id = order[i]!;
+    const kids = address.childrenOf(id);
+    const end = kids.length === 0 ? i : subtreeEnd.get(kids[kids.length - 1]!)!;
+    subtreeEnd.set(id, end);
+  }
+
   let matched: string | null = null;
-  for (const id of address.order) {
-    if (id === fromId) break;
+  let matchedEnd = -1;
+  for (let i = 0; i < fromIdx; i++) {
+    const id = order[i]!;
+    if (ancestors.has(id)) continue;
     const node = nodesById.get(id);
-    if (node && node.node_type === "group" && node.name.toLowerCase() === needle) {
+    if (!node || node.node_type !== "group" || node.name.toLowerCase() !== needle) continue;
+    const end = subtreeEnd.get(id)!;
+    // `end < fromIdx` is guaranteed here (id precedes fromId and isn't its
+    // ancestor ⇒ its whole contiguous subtree precedes fromId), but guard
+    // defensively; pick the latest-completing eligible match.
+    if (end < fromIdx && end > matchedEnd) {
       matched = id;
+      matchedEnd = end;
     }
   }
   return matched;

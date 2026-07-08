@@ -220,6 +220,86 @@ describe("buildModelXlsx", () => {
     const emptyAmt = ws.getCell("J6");
     expect(emptyAmt.value).toBe(0); // static 0, no line-formula ROUND
   });
+
+  it("a line with a non-parseable formula emits a literal 0 Amount (matches rollupLive)", async () => {
+    // rollupLive's evalFormula returns 0 for any formula that doesn't match its
+    // percent regexes; the workbook must recompute to 0, not qty*rate.
+    const rows: CostNodeRow[] = [
+      r({ id: "root", node_type: "group", name: "Root", parent_id: null, sort_order: 0 }),
+      r({
+        id: "weird",
+        parent_id: "root",
+        name: "Weird",
+        node_type: "line",
+        formula: "abc",
+        quantity: 2,
+        rate: 5000,
+        sort_order: 0,
+      }),
+    ];
+    const { ws, rollup } = await buildAndLoad({ modelName: "M", currency: "USD", nodes: rows });
+    expect(rollup.byNodeId["weird"]).toBe(0);
+    // Weird is data row 2 → Excel row 6. Amount cell is a literal 0 (no ROUND formula).
+    const amtCell = ws.getCell("J6");
+    expect(amtCell.value).toBe(0);
+    expect(amtCell.formula).toBeFalsy(); // literal cell, not a formula
+    // static cross-check column is also 0
+    expect(Number(ws.getCell("K6").value)).toBe(0);
+  });
+
+  it("named-group reference resolves to the most-recently COMPLETED group (post-order), matching rollupLive", async () => {
+    // Two sibling groups both named "X": G1 then G2. G2 contains a line
+    // "10% of X". rollupLive registers G1 in ctx.named only AFTER G1's subtree
+    // completes; when G2's line evaluates, G2 has not completed yet, so the
+    // reference resolves to G1.
+    const rows: CostNodeRow[] = [
+      r({ id: "root", node_type: "group", name: "Root", parent_id: null, sort_order: 0 }),
+      r({ id: "g1", node_type: "group", name: "X", parent_id: "root", sort_order: 0 }),
+      r({ id: "g1-line", parent_id: "g1", name: "G1 line", quantity: 1, rate: 100000, sort_order: 0 }),
+      r({ id: "g2", node_type: "group", name: "X", parent_id: "root", sort_order: 1 }),
+      r({
+        id: "g2-line",
+        parent_id: "g2",
+        name: "G2 line",
+        node_type: "line",
+        formula: "10% of X",
+        sort_order: 0,
+      }),
+    ];
+    const tree = buildTree(rows);
+    const rollup = rollupLive(tree);
+    // g1 subtotal = 100000 minor; g2-line = 10% of G1 (100000) = 10000 minor
+    expect(rollup.byNodeId["g1"]).toBe(100000);
+    expect(rollup.byNodeId["g2-line"]).toBe(10000);
+
+    const { ws } = await buildAndLoad({ modelName: "M", currency: "USD", nodes: rows });
+    // Order: root(5), g1(6), g1-line(7), g2(8), g2-line(9).
+    // g2-line's formula must reference G1's amount cell (J6), NOT G2's (J8).
+    const g2LineCell = ws.getCell("J9");
+    expect(g2LineCell.formula).toContain("ROUND(");
+    expect(g2LineCell.formula).toContain("10%");
+    expect(g2LineCell.formula).toContain("J6");
+    expect(g2LineCell.formula).not.toContain("J8");
+    // cached result = fromMinor(10000) = 100.00
+    expect(g2LineCell.result).toBeCloseTo(fromMinor(10000, "USD"), 2);
+  });
+
+  it("multi-root model: grand-total cell is SUM of root amount cells and equals fromMinor(rollup.total)", async () => {
+    const rows: CostNodeRow[] = [
+      r({ id: "rootA", node_type: "group", name: "Root A", parent_id: null, sort_order: 0 }),
+      r({ id: "a-line", parent_id: "rootA", name: "A line", quantity: 1, rate: 10000, sort_order: 0 }),
+      r({ id: "rootB", node_type: "group", name: "Root B", parent_id: null, sort_order: 1 }),
+      r({ id: "b-line", parent_id: "rootB", name: "B line", quantity: 1, rate: 25000, sort_order: 0 }),
+    ];
+    const { ws, rollup } = await buildAndLoad({ modelName: "M", currency: "USD", nodes: rows });
+    // Order: rootA(5), a-line(6), rootB(7), b-line(8). Grand-total cell is B3.
+    const totalCell = ws.getCell("B3");
+    expect(totalCell.formula).toMatch(/^SUM\(/);
+    expect(totalCell.formula).toContain("J5"); // rootA amount
+    expect(totalCell.formula).toContain("J7"); // rootB amount
+    // total = 10000 + 25000 = 35000 minor = 350.00
+    expect(Number(totalCell.result)).toBeCloseTo(fromMinor(rollup.total, "USD"), 2);
+  });
 });
 
 describe("buildModelXlsx rounding fidelity (fractional quantity)", () => {
@@ -242,7 +322,7 @@ describe("buildModelXlsx rounding fidelity (fractional quantity)", () => {
     const rollup = rollupLive(tree);
 
     // hand-computed expectations (minor): material 70200, conversion 43000,
-    // overhead 12% of conversion → 5160, margin 9% of (70200+43000+5160=118360) → 10653 (round half up)
+    // overhead 12% of conversion → 5160, margin 9% of (70200+43000+5160=118360) → 10652 (rounded down)
     expect(rollup.byNodeId["mat"]).toBe(70200);
     expect(rollup.byNodeId["conv"]).toBe(43000);
     expect(rollup.byNodeId["oh"]).toBe(5160);
