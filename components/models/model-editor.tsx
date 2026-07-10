@@ -13,21 +13,25 @@ import { IndicesProvider } from "@/components/models/indices-context";
 import { VersionBar } from "@/components/models/version-bar";
 import { RollupDonut } from "@/components/models/charts/rollup-donut";
 import { TornadoChart } from "@/components/models/charts/tornado-chart";
+import { ExportMenu } from "@/components/export/export-menu";
 import type { CostNodeRow } from "@/lib/model/types";
 import type { ModelHeader } from "@/lib/db/models";
 import type { IndexWithLatest } from "@/lib/db/indices";
 import type { ModelVersion } from "@/lib/db/versions";
+import type { Plan } from "@/lib/entitlements";
 
 export function ModelEditor({
   model,
   nodes,
   indices,
   versions,
+  plan,
 }: {
   model: ModelHeader;
   nodes: CostNodeRow[];
   indices: IndexWithLatest[];
   versions: ModelVersion[];
+  plan: Plan;
 }) {
   const hydrate = useEditorStore((s) => s.hydrate);
   useEffect(() => {
@@ -78,6 +82,7 @@ export function ModelEditor({
             <Button asChild variant="outline" size="sm">
               <Link href={`/models/${model.id}/compare`}>Compare quotes</Link>
             </Button>
+            <ExportMenu modelId={model.id} plan={plan} />
             <div className="text-right">
               <div className="text-[10px] tracking-wide text-muted-foreground uppercase">
                 Should-cost ({model.currency})

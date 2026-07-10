@@ -12,12 +12,14 @@ import { QuoteForm } from "@/components/quotes/quote-form";
 import { ComparisonMatrix } from "@/components/quotes/comparison-matrix";
 import { GapWaterfall } from "@/components/quotes/gap-waterfall";
 import { InsightCards } from "@/components/quotes/insight-cards";
+import { ExportMenu } from "@/components/export/export-menu";
 import { buildComparison } from "@/lib/model/comparison";
 import { rollupLive } from "@/lib/model/rollup-live";
 import { buildTree } from "@/lib/model/tree";
 import type { CostNodeRow } from "@/lib/model/types";
 import type { QuoteWithLines } from "@/lib/db/quotes";
 import type { Currency } from "@/components/number/currency-select";
+import type { Plan } from "@/lib/entitlements";
 
 export function CompareView({
   modelId,
@@ -25,12 +27,14 @@ export function CompareView({
   currency,
   nodes,
   quotes,
+  plan,
 }: {
   modelId: string;
   modelName: string;
   currency: Currency;
   nodes: CostNodeRow[];
   quotes: QuoteWithLines[];
+  plan: Plan;
 }) {
   const router = useRouter();
   const [activeId, setActiveId] = useState<string | null>(quotes[0]?.id ?? null);
@@ -83,7 +87,16 @@ export function CompareView({
 
   return (
     <div className="space-y-6">
-      <PageHeader title={modelName} subtitle="Quotes &amp; comparison" actions={addButton} />
+      <PageHeader
+        title={modelName}
+        subtitle="Quotes &amp; comparison"
+        actions={
+          <div className="flex items-center gap-3">
+            <ExportMenu modelId={modelId} plan={plan} quoteId={activeId ?? undefined} />
+            {addButton}
+          </div>
+        }
+      />
 
       {quotes.length === 0 ? (
         <EmptyState

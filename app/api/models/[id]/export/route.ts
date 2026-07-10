@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import type { Workbook } from "exceljs";
 import { getCurrentOrg } from "@/lib/db/orgs";
 import { findActiveSubscriptionByOrg, toSnapshot } from "@/lib/db/subscriptions";
 import { resolvePlan, EntitlementError } from "@/lib/entitlements";
@@ -77,7 +76,7 @@ export async function GET(
   const currency = model.currency as Currency;
   const rollup = rollupLive(buildTree(nodes));
 
-  let wb: Workbook;
+  let wb: ReturnType<typeof buildModelXlsx>;
   let suffix = "";
   if (quoteId) {
     const quote = (await loadQuotes(id)).find((q) => q.id === quoteId);
