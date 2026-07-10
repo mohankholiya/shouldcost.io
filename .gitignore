@@ -28,3 +28,6 @@ next-env.d.ts
 
 # one-time login link (local only)
 login-link.txt
+
+# graphify knowledge-graph output (tooling artifact)
+graphify-out/
