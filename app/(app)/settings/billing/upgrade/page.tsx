@@ -1,10 +1,11 @@
+import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/shared/page-header";
 import { Surface } from "@/components/ui/surface";
 import { PlanCard } from "@/components/billing";
 import { getCurrentOrg } from "@/lib/db/orgs";
 import { findActiveSubscriptionByOrg, toSnapshot } from "@/lib/db/subscriptions";
-import { resolvePlan, getEntitlement } from "@/lib/entitlements";
+import { FREE_LAUNCH, resolvePlan, getEntitlement } from "@/lib/entitlements";
 import type { Plan } from "@/lib/entitlements";
 
 // Carry-forward #1 (Option A): the free plan is rendered as a separate static
@@ -16,6 +17,10 @@ import type { Plan } from "@/lib/entitlements";
 const PAID_PLANS: Plan[] = ["pro", "team"];
 
 export default async function UpgradePage() {
+  // No paid plans to choose during the free-launch beta — everything is already
+  // unlocked, so send the user back to the (informational) billing page.
+  if (FREE_LAUNCH) redirect("/settings/billing");
+
   const org = await getCurrentOrg();
   const isDemo = Boolean(org?.organizations?.is_demo);
   const sub = org ? await findActiveSubscriptionByOrg(org.org_id) : null;

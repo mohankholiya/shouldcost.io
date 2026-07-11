@@ -3,7 +3,7 @@ import { getCurrentOrg } from "@/lib/db/orgs";
 import { createServerClient } from "@/lib/supabase/server";
 import { findActiveSubscriptionByOrg, toSnapshot } from "@/lib/db/subscriptions";
 import { countModelsByOrg } from "@/lib/db/models";
-import { resolvePlan } from "@/lib/entitlements";
+import { resolveEffectivePlan } from "@/lib/entitlements";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 
@@ -17,7 +17,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   // gate, and the model-cap check. `toSnapshot` adapts the snake_case DB row
   // so resolvePlan's currentPeriodEnd expiry check actually fires.
   const sub = await findActiveSubscriptionByOrg(org.org_id);
-  const plan = resolvePlan({ subscription: toSnapshot(sub), isDemo });
+  const plan = resolveEffectivePlan({ subscription: toSnapshot(sub), isDemo });
   const modelCount = await countModelsByOrg(org.org_id);
 
   // Five most recent models (RLS-scoped to this org) feed the sidebar shortcut.

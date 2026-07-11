@@ -51,6 +51,19 @@ export const ENTITLEMENTS: Record<Plan, Entitlement> = {
   },
 };
 
+/**
+ * Free-launch mode. While `true`, every real (unsubscribed) org is elevated to
+ * the full `pro` feature set at no cost via `resolveEffectivePlan`, and the
+ * Stripe billing surfaces are hidden (the billing pages read this flag). This
+ * lets the product ship free while payments are deferred.
+ *
+ * To re-enable paid plans: set to `false`, restore the billing UI CTAs, and
+ * complete the Stripe/Vercel env setup. The `ENTITLEMENTS` catalog and the pure
+ * `resolvePlan` billing-semantics resolver are intentionally left unchanged so
+ * this is a clean one-line revert.
+ */
+export const FREE_LAUNCH = true;
+
 export function getEntitlement(plan: Plan): Entitlement {
   return ENTITLEMENTS[plan];
 }
@@ -89,6 +102,23 @@ export function resolvePlan(input: {
   const ended = end !== null && end.getTime() <= now.getTime();
   if (sub.status !== "active" || ended) return "free";
   return sub.plan;
+}
+
+/**
+ * The plan the app should actually enforce. Identical to `resolvePlan` except
+ * that in {@link FREE_LAUNCH} mode a `free` (unsubscribed) org is elevated to
+ * `pro` — demo orgs and any real paid subscription are unaffected. Every
+ * app/route/action gate calls this instead of `resolvePlan`, so the free-launch
+ * unlock is applied in exactly one place.
+ */
+export function resolveEffectivePlan(input: {
+  subscription: SubscriptionSnapshot | null;
+  isDemo: boolean;
+  now?: Date;
+}): Plan {
+  const plan = resolvePlan(input);
+  if (FREE_LAUNCH && plan === "free") return "pro";
+  return plan;
 }
 
 export class EntitlementError extends Error {

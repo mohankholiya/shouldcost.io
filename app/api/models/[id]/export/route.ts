@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentOrg } from "@/lib/db/orgs";
 import { findActiveSubscriptionByOrg, toSnapshot } from "@/lib/db/subscriptions";
-import { resolvePlan, EntitlementError } from "@/lib/entitlements";
+import { resolveEffectivePlan, EntitlementError } from "@/lib/entitlements";
 import { assertCanExport } from "@/lib/export/gate";
 import { loadModel } from "@/lib/db/models";
 import { loadNodes } from "@/lib/db/nodes";
@@ -52,7 +52,7 @@ export async function GET(
   }
   const isDemo = Boolean(org.organizations.is_demo);
   const sub = await findActiveSubscriptionByOrg(org.org_id);
-  const plan = resolvePlan({ subscription: toSnapshot(sub), isDemo });
+  const plan = resolveEffectivePlan({ subscription: toSnapshot(sub), isDemo });
   try {
     assertCanExport(plan);
   } catch (err) {

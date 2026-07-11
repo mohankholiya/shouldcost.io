@@ -20,7 +20,7 @@ export default function MarketingHome() {
         </Button>
       </div>
       <p className="mt-3 text-xs text-muted-foreground">
-        Free tier: 2 models, 3 templates. No card required.
+        Free during beta — every feature unlocked. No card required.
       </p>
     </section>
   );

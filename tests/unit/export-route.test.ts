@@ -50,11 +50,16 @@ describe("GET /api/models/[id]/export", () => {
     expect((await call("?format=csv")).status).toBe(400);
   });
 
-  it("redirects a Free plan to the upgrade page (server-side gate)", async () => {
+  it("elevates a Free plan to the full product during the free-launch beta", async () => {
+    // FREE_LAUNCH mode: an unsubscribed org resolves to `pro`, so the export
+    // gate passes instead of redirecting to upgrade. The pure gate that blocks
+    // a genuine `free` plan is still covered in export-gate.test.ts.
     vi.mocked(getCurrentOrg).mockResolvedValue(freeOrg);
+    vi.mocked(loadModel).mockResolvedValue(model);
+    vi.mocked(loadNodes).mockResolvedValue(nodes);
     const res = await call("?format=xlsx");
-    expect([302, 307]).toContain(res.status);
-    expect(res.headers.get("location")).toContain("/settings/billing/upgrade");
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toContain("spreadsheetml");
   });
 
   it("redirects to /login when there is no org", async () => {
