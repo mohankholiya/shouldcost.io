@@ -7,6 +7,8 @@ import { getCurrentOrg } from "@/lib/db/orgs";
 import { createServerClient } from "@/lib/supabase/server";
 import { resolveEffectivePlan, canCreateModel, canUseTemplate } from "@/lib/entitlements";
 import { findActiveSubscriptionByOrg, toSnapshot } from "@/lib/db/subscriptions";
+import { ModelDraftSchema } from "@/lib/ai/schemas";
+import type { CostNodeRow } from "@/lib/model/types";
 
 export async function createProjectAction(input: unknown) {
   const { name } = z.object({ name: z.string().min(1) }).parse(input);
@@ -86,4 +88,46 @@ export async function instantiateModelAction(input: unknown): Promise<Instantiat
 
   const id = await createModel(projectId, name, templateSlug);
   return { id };
+}
+
+/**
+ * Create a model from an AI-generated draft: reuses createModel + saveNodes so there is
+ * one insert path. Node ids are generated server-side; every line is flagged as an AI
+ * estimate for the user to verify.
+ */
+export async function createModelFromDraftAction(input: unknown): Promise<InstantiateResult> {
+  const { projectId, draft } = z
+    .object({ projectId: z.string(), draft: ModelDraftSchema })
+    .parse(input);
+
+  const org = await getCurrentOrg();
+  if (!org?.organizations) throw new Error("No organization for the current user");
+  const isDemo = Boolean(org.organizations.is_demo);
+  const sub = await findActiveSubscriptionByOrg(org.org_id);
+  const plan = resolveEffectivePlan({ subscription: toSnapshot(sub), isDemo });
+  const count = await countModelsByOrg(org.org_id);
+  if (!canCreateModel(plan, count)) {
+    return { error: "MODELS_EXCEEDED", requiredPlan: "pro" };
+  }
+
+  const modelId = await createModel(projectId, draft.name);
+  const rows: CostNodeRow[] = draft.nodes.map((n, i) => ({
+    id: crypto.randomUUID(),
+    model_id: modelId,
+    parent_id: null,
+    sort_order: i,
+    name: n.name,
+    node_type: "line",
+    driver_name: n.driver,
+    quantity: n.quantity,
+    unit: n.unit,
+    rate: Math.round(n.rate_minor),
+    rate_source: "manual",
+    index_id: null,
+    index_factor: null,
+    formula: null,
+    notes: n.note ? `AI estimate — verify. ${n.note}` : "AI estimate — verify.",
+  }));
+  await saveNodes(modelId, rows, []);
+  return { id: modelId };
 }

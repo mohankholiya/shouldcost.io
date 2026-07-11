@@ -4,8 +4,10 @@ import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { TemplatePicker } from "@/components/indices/template-picker";
+import { DraftModel } from "@/components/ai/draft-model";
+import { isAiEnabled } from "@/lib/ai/client";
 import { cn } from "@/lib/utils";
-import { surfaceVariants } from "@/components/ui/surface";
+import { Surface, surfaceVariants } from "@/components/ui/surface";
 import { getCurrentOrg } from "@/lib/db/orgs";
 import { findActiveSubscriptionByOrg, toSnapshot } from "@/lib/db/subscriptions";
 import { resolveEffectivePlan, type Plan } from "@/lib/entitlements";
@@ -38,6 +40,12 @@ export default async function ProjectDetail({ params }: { params: Promise<{ id: 
         subtitle="Models in this project"
         actions={<TemplatePicker projectId={id} plan={plan} />}
       />
+      {isAiEnabled() && (
+        <Surface padding="lg" radius="lg" className="mb-4 space-y-2">
+          <div className="text-sm font-medium">Draft a model with AI</div>
+          <DraftModel projectId={id} />
+        </Surface>
+      )}
       {models.length === 0 ? (
         <EmptyState
           title="No models in this project"
