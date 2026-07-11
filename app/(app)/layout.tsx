@@ -7,10 +7,21 @@ import { resolveEffectivePlan } from "@/lib/entitlements";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { CommandPalette } from "@/components/command/command-palette";
+import { NoWorkspace } from "@/components/layout/no-workspace";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const org = await getCurrentOrg();
-  if (!org) redirect("/login");
+  if (!org) {
+    // getCurrentOrg is null for two distinct reasons. Handle them differently so an
+    // authenticated-but-org-less user never gets redirected to /login — middleware would
+    // bounce them straight back to /dashboard, producing ERR_TOO_MANY_REDIRECTS.
+    const supabase = await createServerClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) redirect("/login");
+    return <NoWorkspace />;
+  }
   const orgName = org.organizations?.name ?? "My workspace";
   const isDemo = Boolean(org.organizations?.is_demo);
 
