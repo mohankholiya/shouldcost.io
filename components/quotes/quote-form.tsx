@@ -41,6 +41,7 @@ export function QuoteForm({
     return seed;
   });
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const { register, handleSubmit } = useForm<QuoteFormValues>({
     defaultValues: {
@@ -53,6 +54,7 @@ export function QuoteForm({
 
   async function onSubmit(v: QuoteFormValues) {
     setSaving(true);
+    setError(null);
     try {
       const lines = lineMode
         ? leafLines
@@ -63,7 +65,7 @@ export function QuoteForm({
               amount: toMinor(lineMajor[n.id]!, currency),
             }))
         : [];
-      await saveQuoteAction({
+      const res = await saveQuoteAction({
         modelId,
         quoteId: initial?.id,
         supplier_name: v.supplier_name,
@@ -73,7 +75,14 @@ export function QuoteForm({
         quoted_total: toMinor(Number(v.quoted_total_major) || 0, currency),
         lines,
       });
-      onSaved();
+      if (res.ok) {
+        onSaved();
+      } else {
+        setError(res.error);
+      }
+    } catch (e) {
+      // Network / unexpected client-side failure (server errors come back via res.error above).
+      setError(e instanceof Error ? e.message : "Could not save the quote. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -134,9 +143,16 @@ export function QuoteForm({
         )}
       </div>
 
-      <Button type="submit" disabled={saving}>
-        {saving ? "Saving…" : "Save quote"}
-      </Button>
+      <div className="space-y-2">
+        <Button type="submit" disabled={saving}>
+          {saving ? "Saving…" : "Save quote"}
+        </Button>
+        {error && (
+          <p className="text-sm text-danger" role="alert">
+            Couldn’t save: {error}
+          </p>
+        )}
+      </div>
     </form>
   );
 }

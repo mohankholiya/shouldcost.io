@@ -21,11 +21,21 @@ export const QuoteInputSchema = z.object({
   quoteId: z.string().optional(),
 });
 
-export async function saveQuoteAction(input: unknown): Promise<{ id: string }> {
-  const { modelId, quoteId, ...rest } = QuoteInputSchema.parse(input);
-  const data: QuoteInputData = rest;
-  const id = await saveQuote(modelId, data, quoteId);
-  return { id };
+export type SaveQuoteResult = { ok: true; id: string } | { ok: false; error: string };
+
+export async function saveQuoteAction(input: unknown): Promise<SaveQuoteResult> {
+  try {
+    const { modelId, quoteId, ...rest } = QuoteInputSchema.parse(input);
+    const data: QuoteInputData = rest;
+    const id = await saveQuote(modelId, data, quoteId);
+    return { ok: true, id };
+  } catch (e) {
+    // Surface the real cause: production redacts thrown server-action errors to a digest,
+    // so we log server-side (Vercel logs) and return the message for the form to display.
+    const error = e instanceof Error ? e.message : String(e);
+    console.error("[saveQuoteAction] failed:", error, e);
+    return { ok: false, error };
+  }
 }
 
 export async function deleteQuoteAction(input: unknown): Promise<{ ok: true }> {
