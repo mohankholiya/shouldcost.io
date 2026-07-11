@@ -67,6 +67,15 @@ export function CommandPalette({
           >
             Toggle theme
           </CommandItem>
+          <CommandItem
+            value="How to use this app"
+            onSelect={() => {
+              setOpen(false);
+              window.open("/how-to-use.html", "_blank", "noopener");
+            }}
+          >
+            How to use this app
+          </CommandItem>
         </CommandGroup>
       </CommandList>
     </CommandDialog>

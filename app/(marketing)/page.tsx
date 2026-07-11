@@ -18,6 +18,9 @@ export default function MarketingHome() {
         <Button variant="secondary" asChild>
           <Link href="/login">Sign in</Link>
         </Button>
+        <Button variant="outline" asChild>
+          <a href="/how-to-use.html" target="_blank" rel="noopener">See how it works</a>
+        </Button>
       </div>
       <p className="mt-3 text-xs text-muted-foreground">
         Free during beta — every feature unlocked. No card required.
