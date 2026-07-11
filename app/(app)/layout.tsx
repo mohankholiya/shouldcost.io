@@ -6,6 +6,7 @@ import { countModelsByOrg } from "@/lib/db/models";
 import { resolveEffectivePlan } from "@/lib/entitlements";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
+import { CommandPalette } from "@/components/command/command-palette";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const org = await getCurrentOrg();
@@ -31,6 +32,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex min-h-screen">
+      <CommandPalette recentModels={recentModels} />
       <Sidebar recentModels={recentModels} plan={plan} modelCount={modelCount} />
       <div className="flex flex-1 flex-col">
         <Topbar orgName={orgName} />
