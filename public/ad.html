@@ -85,6 +85,10 @@
   .replay{position:absolute;bottom:16px;right:16px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);
     color:#fff;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;opacity:0;transition:opacity .4s;font-family:var(--sans)}
   .replay.show{opacity:1}
+  .sound{position:absolute;bottom:16px;left:16px;background:#7fd0ff;border:none;color:#06212f;
+    border-radius:10px;padding:9px 16px;font-size:13px;font-weight:800;cursor:pointer;font-family:var(--sans);
+    box-shadow:0 8px 22px rgba(0,0,0,.35)}
+  .sound.playing{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.3)}
   .cap{position:absolute;left:0;right:0;bottom:5%;text-align:center;color:rgba(255,255,255,.55);font-size:clamp(10px,1.3vw,14px);letter-spacing:.04em}
 </style>
 </head>
@@ -154,6 +158,7 @@
   <div class="cap" id="cap"></div>
   <div class="timeline"><div class="tl-fill" id="tlfill"></div></div>
   <button class="replay" id="replay">↻ Replay</button>
+  <button class="sound" id="sound">🔊 Play with sound</button>
 </div>
 
 <script>
@@ -162,6 +167,7 @@
   const total = durs.reduce((a,b)=>a+b,0);
   const fill = document.getElementById('tlfill');
   const replay = document.getElementById('replay');
+  const soundBtn = document.getElementById('sound');
   const cap = document.getElementById('cap');
   const captions = [
     'A should-cost model is what a part truly costs to make.',
@@ -171,11 +177,61 @@
     'Transparent. Defensible. Ready.',
     'Start free at shouldcost-io.vercel.app'
   ];
-  let idx = 0, t0 = 0, raf = 0, timer = 0;
+  // Per-scene voiceover (browser Web Speech API — free, no key). Kept short to fit each scene.
+  const vo = [
+    'How much are you overpaying your suppliers?',
+    'shouldcost.io rebuilds what a part should cost. Every driver, transparent.',
+    'See your baseline against any quote, line by line.',
+    'Let AI draft the first model in seconds.',
+    'Transparent. Defensible. Ready to negotiate.',
+    'shouldcost dot I O. Free during beta. Start now.'
+  ];
+  let idx = 0, t0 = 0, raf = 0, timer = 0, sound = false;
+
+  /* ---- audio: subtle Web Audio pad (procedural, no external files) ---- */
+  let actx = null, master = null, padNodes = [];
+  const CHORDS = [
+    [130.81,196.00,261.63], [146.83,220.00,293.66], [164.81,246.94,329.63],
+    [130.81,196.00,261.63], [174.61,261.63,349.23], [196.00,246.94,392.00]
+  ];
+  function initAudio(){
+    if(actx) return;
+    actx = new (window.AudioContext || window.webkitAudioContext)();
+    master = actx.createGain(); master.gain.value = 0.0;
+    const lp = actx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=1400;
+    master.connect(lp); lp.connect(actx.destination);
+  }
+  function stopPad(){ padNodes.forEach(n=>{try{n.stop()}catch(e){}}); padNodes=[]; }
+  function playChord(freqs){
+    if(!actx) return;
+    stopPad();
+    const g = actx.createGain(); g.gain.value = 0; g.connect(master);
+    const now = actx.currentTime;
+    g.gain.linearRampToValueAtTime(0.5, now+0.6);
+    freqs.forEach((f,i)=>{
+      const o = actx.createOscillator();
+      o.type = i===0 ? 'sine' : 'triangle';
+      o.frequency.value = f; o.detune.value = (i-1)*4;
+      o.connect(g); o.start(); padNodes.push(o);
+    });
+    padNodes.push({stop:()=>g.gain.linearRampToValueAtTime(0, actx.currentTime+0.4)});
+  }
+  function speak(text){
+    if(!sound || !('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    const voices = window.speechSynthesis.getVoices();
+    const pref = voices.find(v=>/en(-|_)?(US|GB)/i.test(v.lang) && /Google|Microsoft|Natural|Samantha|Daniel/i.test(v.name))
+             || voices.find(v=>/^en/i.test(v.lang)) || voices[0];
+    if(pref) u.voice = pref;
+    u.rate = 1.03; u.pitch = 1.0; u.volume = 1.0;
+    window.speechSynthesis.speak(u);
+  }
 
   function showScene(n){
     scenes.forEach((s,i)=>s.classList.toggle('active', i===n));
     cap.textContent = captions[n] || '';
+    if(sound){ speak(vo[n]); playChord(CHORDS[n]); }
   }
   function tick(now){
     if(!t0) t0 = now;
@@ -183,21 +239,32 @@
     fill.style.width = Math.min(100, elapsed/total*100) + '%';
     if(elapsed < total) raf = requestAnimationFrame(tick);
   }
-  function play(){
+  function play(withSound){
+    sound = !!withSound;
     idx = 0; t0 = 0; cancelAnimationFrame(raf); clearTimeout(timer);
+    if(window.speechSynthesis) window.speechSynthesis.cancel();
     replay.classList.remove('show');
     fill.style.width = '0%';
+    if(sound){ initAudio(); if(actx.state==='suspended') actx.resume(); master && master.gain.linearRampToValueAtTime(0.06, actx.currentTime+0.5); }
+    else if(master){ master.gain.value = 0; stopPad(); }
+    soundBtn.classList.toggle('playing', sound);
     showScene(0);
     raf = requestAnimationFrame(tick);
     const advance = () => {
       idx++;
       if(idx < scenes.length){ showScene(idx); timer = setTimeout(advance, durs[idx]); }
-      else { replay.classList.add('show'); }
+      else {
+        replay.classList.add('show');
+        if(master && sound) master.gain.linearRampToValueAtTime(0, actx.currentTime+0.8);
+      }
     };
     timer = setTimeout(advance, durs[0]);
   }
-  replay.addEventListener('click', play);
-  play();
+  // warm up voices list (some browsers populate async)
+  if('speechSynthesis' in window){ window.speechSynthesis.getVoices(); window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices(); }
+  replay.addEventListener('click', () => play(sound));
+  soundBtn.addEventListener('click', () => play(true));   // user gesture unlocks audio
+  play(false);  // visual autoplay, muted (autoplay-safe)
 </script>
 </body>
 </html>
