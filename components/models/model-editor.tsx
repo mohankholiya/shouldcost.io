@@ -14,7 +14,9 @@ import { VersionBar } from "@/components/models/version-bar";
 import { RollupDonut } from "@/components/models/charts/rollup-donut";
 import { TornadoChart } from "@/components/models/charts/tornado-chart";
 import { ExportMenu } from "@/components/export/export-menu";
+import { NodeAiAssist } from "@/components/ai/node-ai-assist";
 import type { CostNodeRow } from "@/lib/model/types";
+import type { Currency } from "@/components/number/currency-select";
 import type { ModelHeader } from "@/lib/db/models";
 import type { IndexWithLatest } from "@/lib/db/indices";
 import type { ModelVersion } from "@/lib/db/versions";
@@ -98,6 +100,7 @@ export function ModelEditor({
       <IndicesProvider value={indices}>
         <CbsTree />
       </IndicesProvider>
+      <NodeAiAssist currency={model.currency as Currency} />
       <div className="grid gap-4 lg:grid-cols-2">
         <RollupDonut nodes={currentNodes} rollup={rollup} />
         <TornadoChart nodes={currentNodes} />
