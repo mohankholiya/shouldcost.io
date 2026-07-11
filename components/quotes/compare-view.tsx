@@ -12,6 +12,7 @@ import { QuoteForm } from "@/components/quotes/quote-form";
 import { ComparisonMatrix } from "@/components/quotes/comparison-matrix";
 import { GapWaterfall } from "@/components/quotes/gap-waterfall";
 import { InsightCards } from "@/components/quotes/insight-cards";
+import { ExplainGapPanel } from "@/components/ai/explain-gap-panel";
 import { ExportMenu } from "@/components/export/export-menu";
 import { buildComparison } from "@/lib/model/comparison";
 import { rollupLive } from "@/lib/model/rollup-live";
@@ -121,23 +122,26 @@ export function CompareView({
             }}
             onDeleted={refresh}
           />
-          {comparison && (
-            <Tabs defaultValue="matrix" className="space-y-4">
-              <TabsList>
-                <TabsTrigger value="matrix">Matrix</TabsTrigger>
-                <TabsTrigger value="gap">Gap</TabsTrigger>
-                <TabsTrigger value="insights">Insights</TabsTrigger>
-              </TabsList>
-              <TabsContent value="matrix">
-                <ComparisonMatrix comparison={comparison} currency={currency} />
-              </TabsContent>
-              <TabsContent value="gap">
-                <GapWaterfall comparison={comparison} currency={currency} />
-              </TabsContent>
-              <TabsContent value="insights">
-                <InsightCards comparison={comparison} currency={currency} />
-              </TabsContent>
-            </Tabs>
+          {comparison && active && (
+            <div className="space-y-4">
+              <Tabs defaultValue="matrix" className="space-y-4">
+                <TabsList>
+                  <TabsTrigger value="matrix">Matrix</TabsTrigger>
+                  <TabsTrigger value="gap">Gap</TabsTrigger>
+                  <TabsTrigger value="insights">Insights</TabsTrigger>
+                </TabsList>
+                <TabsContent value="matrix">
+                  <ComparisonMatrix comparison={comparison} currency={currency} />
+                </TabsContent>
+                <TabsContent value="gap">
+                  <GapWaterfall comparison={comparison} currency={currency} />
+                </TabsContent>
+                <TabsContent value="insights">
+                  <InsightCards comparison={comparison} currency={currency} />
+                </TabsContent>
+              </Tabs>
+              <ExplainGapPanel modelId={modelId} quoteId={active.id} />
+            </div>
           )}
         </div>
       )}
