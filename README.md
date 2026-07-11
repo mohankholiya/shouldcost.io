@@ -7,7 +7,7 @@
 Break any bought part or service down to its true cost drivers, link them to live commodity
 indices, benchmark supplier quotes line-by-line, and let AI draft the first model for you.
 
-**[▶ Live app](https://shouldcost-io.vercel.app) · [📊 How-to slides](docs/how-to-use.html) · [Report an issue](https://github.com/mohankholiya/shouldcost.io/issues)**
+**[▶ Live app](https://shouldcost-io.vercel.app) · [📊 How-to slides](https://shouldcost-io.vercel.app/how-to-use.html) · [Report an issue](https://github.com/mohankholiya/shouldcost.io/issues)**
 
 <sub>Next.js 14 · TypeScript (strict) · Tailwind v4 · shadcn/ui + Radix · Supabase (Postgres + Auth, RLS) · Zustand · TanStack Table · Recharts · ExcelJS · Claude (Anthropic)</sub>
 
@@ -60,7 +60,7 @@ indices), and portable (export to Excel with the formulas intact).
 4. **Add supplier quotes** — open **Compare quotes**, enter a quote, and read the gap waterfall + insights (or **Explain with AI**).
 5. **Export & negotiate** — download the `.xlsx` and take a defensible baseline into the conversation.
 
-> A visual walkthrough lives in **[`docs/how-to-use.html`](docs/how-to-use.html)** — open it in any browser (animated, arrow-key navigable).
+> A visual walkthrough is live at **[shouldcost-io.vercel.app/how-to-use.html](https://shouldcost-io.vercel.app/how-to-use.html)** (animated, arrow-key navigable) — source in [`docs/how-to-use.html`](docs/how-to-use.html).
 
 ## Tech stack
 
