@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>shouldcost.io — 15s vertical ad (9:16)</title>
+<!--
+  MUSIC / VOICEOVER TIMING MARKERS (total 15.0s)
+  0.0s  Scene 1  Hook          VO: "How much are you overpaying your suppliers?"   chord: C
+  3.0s  Scene 2  What          VO: "Know what a part should cost. Every driver, transparent."  chord: D
+  6.0s  Scene 3  Gap           VO: "Your baseline versus their quote, instantly."   chord: E  (gap tag pops @6.9s)
+  9.5s  Scene 4  AI            VO: "Let AI draft it in seconds."                    chord: C
+  12.0s Scene 5  CTA           VO: "shouldcost dot I O. Free during beta."          chord: F  (hold to 15.0s)
+  Music: soft pad, one chord per scene; swell in 0.6s, duck under VO. Suggested BPM if adding a beat: 90.
+-->
+<style>
+  :root{
+    --petrol-600:#0b3c5d; --petrol-400:#5e90b3; --petrol-300:#8fb6cf;
+    --favor:#10b981; --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+    --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:#0a1116;display:flex;align-items:center;justify-content:center;font-family:var(--sans);overflow:hidden}
+  .stage{position:relative;height:min(96vh,170vw);aspect-ratio:9/16;overflow:hidden;color:#eef4f8;
+    background:
+      radial-gradient(600px 520px at 80% -6%, #12496b, transparent 60%),
+      radial-gradient(560px 520px at -10% 108%, #0c3b55, transparent 55%),
+      linear-gradient(165deg,#0d2838,#0a1a26 60%,#08131b);
+    box-shadow:0 30px 90px rgba(0,0,0,.6);border-radius:10px}
+
+  .scene{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;
+    padding:0 8%;opacity:0;pointer-events:none;text-align:center;align-items:center}
+  .scene.active{opacity:1}
+  .scene.active .in{animation:rise .6s both}
+  .scene.active .in.d2{animation-delay:.22s} .scene.active .in.d3{animation-delay:.44s}
+  @keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+  @keyframes pop{0%{opacity:0;transform:scale(.6)}70%{transform:scale(1.08)}100%{opacity:1;transform:scale(1)}}
+
+  .kick{font-size:3.4vh;letter-spacing:.2em;text-transform:uppercase;color:var(--petrol-300);font-weight:700;margin-bottom:2.4vh}
+  .big{font-family:var(--serif);font-weight:600;line-height:1.04;letter-spacing:-.01em;font-size:6.6vh}
+  .accent{color:#7fd0ff}
+
+  .stack{width:34%;display:flex;flex-direction:column-reverse;border-radius:8px;overflow:hidden;margin-top:4vh;box-shadow:0 12px 40px rgba(0,0,0,.35)}
+  .seg{height:0;transition:height .6s cubic-bezier(.2,.8,.2,1);display:flex;align-items:center;justify-content:center;font-size:1.8vh;font-weight:600;color:#06212f}
+  .scene.active .seg{height:var(--h)}
+  .seg.s1{background:#7fd0ff}.seg.s2{background:#5eb3e6}.seg.s3{background:#4a97c9}.seg.s4{background:#3c7ba8}.seg.s5{background:#2f6088}
+
+  .bars{display:flex;align-items:flex-end;gap:10%;height:34vh;margin-top:3vh}
+  .bar{width:26%;border-radius:10px 10px 0 0;height:0;transition:height 1s cubic-bezier(.2,.8,.2,1);position:relative}
+  .bar.sc{background:linear-gradient(180deg,#5eb3e6,#2f6088)} .bar.q{background:linear-gradient(180deg,#f7d9a0,#e0a94a)}
+  .scene.active .bar{height:var(--h)}
+  .bar b{position:absolute;top:-4vh;left:0;right:0;text-align:center;font-family:ui-monospace,monospace;font-size:2.4vh;color:#fff}
+  .bar small{position:absolute;bottom:-3.6vh;left:0;right:0;text-align:center;color:#b8ccd8;font-size:1.7vh;font-weight:600}
+  .gap{margin-top:3vh;background:var(--favor);color:#04231a;padding:1.4vh 4%;border-radius:40px;font-weight:800;font-size:2.4vh}
+  .scene.active .gap{animation:pop .6s .9s both}
+
+  .word{display:block;font-family:var(--serif);font-size:6.2vh;font-weight:600;line-height:1.2}
+  .dot{color:var(--petrol-400)}
+
+  .logo{font-weight:700;font-size:7vh;letter-spacing:-.02em}.logo .io{color:#7fd0ff}
+  .url{font-family:ui-monospace,monospace;font-size:2.6vh;color:#fff;margin-top:2.4vh;border:1px solid rgba(255,255,255,.25);padding:1.4vh 4%;border-radius:12px}
+  .free{margin-top:2.4vh;color:#9fe6c8;font-weight:600;font-size:2.2vh}
+
+  .timeline{position:absolute;left:0;right:0;bottom:0;height:4px;background:rgba(255,255,255,.12)}
+  .tl-fill{height:100%;width:0;background:#7fd0ff}
+  .replay,.sound{position:absolute;bottom:14px;border:none;border-radius:9px;padding:8px 13px;font-size:12px;font-weight:800;cursor:pointer;font-family:var(--sans)}
+  .replay{right:12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#fff;opacity:0;transition:opacity .4s}
+  .replay.show{opacity:1}
+  .sound{left:12px;background:#7fd0ff;color:#06212f;box-shadow:0 8px 22px rgba(0,0,0,.35)}
+  .sound.playing{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.3)}
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <section class="scene" data-dur="3000">
+    <div class="kick in">Procurement</div>
+    <div class="big in d2">Overpaying your <span class="accent">suppliers?</span></div>
+  </section>
+  <section class="scene" data-dur="3000">
+    <div class="kick in">Should-cost</div>
+    <div class="big in" style="font-size:5vh">Know what it <span class="accent">should</span> cost.</div>
+    <div class="stack in d2">
+      <div class="seg s1" style="--h:4.5vh">Margin</div>
+      <div class="seg s2" style="--h:4.5vh">Overhead</div>
+      <div class="seg s3" style="--h:6vh">Labour</div>
+      <div class="seg s4" style="--h:7vh">Process</div>
+      <div class="seg s5" style="--h:9vh">Material</div>
+    </div>
+  </section>
+  <section class="scene" data-dur="3500">
+    <div class="kick in">The gap, instantly</div>
+    <div class="bars">
+      <div class="bar sc in d2" style="--h:22vh"><b>$1.00m</b><small>Should-cost</small></div>
+      <div class="bar q in d3" style="--h:28vh"><b>$1.28m</b><small>Quote</small></div>
+    </div>
+    <div class="gap">↓ $0.28m to negotiate</div>
+  </section>
+  <section class="scene" data-dur="2500">
+    <div class="kick in">AI · Claude</div>
+    <div><span class="word in">Draft<span class="dot">.</span></span><span class="word in d2">Suggest<span class="dot">.</span></span><span class="word in d3">Explain<span class="dot">.</span></span></div>
+  </section>
+  <section class="scene" data-dur="3000">
+    <div class="logo in">shouldcost<span class="io">.io</span></div>
+    <div class="url in d2">shouldcost-io.vercel.app</div>
+    <div class="free in d3">Free during beta.</div>
+  </section>
+
+  <div class="timeline"><div class="tl-fill" id="tlfill"></div></div>
+  <button class="replay" id="replay">↻</button>
+  <button class="sound" id="sound">🔊 Sound</button>
+</div>
+<script>
+  const scenes=Array.from(document.querySelectorAll('.scene'));
+  const durs=scenes.map(s=>+s.dataset.dur), total=durs.reduce((a,b)=>a+b,0);
+  const fill=document.getElementById('tlfill'), replay=document.getElementById('replay'), soundBtn=document.getElementById('sound');
+  const vo=[
+    'How much are you overpaying your suppliers?',
+    'Know what a part should cost. Every driver, transparent.',
+    'Your baseline versus their quote, instantly.',
+    'Let AI draft it in seconds.',
+    'shouldcost dot I O. Free during beta.'
+  ];
+  let idx=0,t0=0,raf=0,timer=0,sound=false,actx=null,master=null,pad=[];
+  const CH=[[130.81,196,261.63],[146.83,220,293.66],[164.81,246.94,329.63],[130.81,196,261.63],[174.61,261.63,349.23]];
+  function initAudio(){ if(actx)return; actx=new (window.AudioContext||window.webkitAudioContext)(); master=actx.createGain(); master.gain.value=0;
+    const lp=actx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=1400; master.connect(lp); lp.connect(actx.destination); }
+  function stopPad(){ pad.forEach(n=>{try{n.stop()}catch(e){}}); pad=[]; }
+  function chord(fs){ if(!actx)return; stopPad(); const g=actx.createGain(); g.gain.value=0; g.connect(master);
+    g.gain.linearRampToValueAtTime(0.5, actx.currentTime+0.6);
+    fs.forEach((f,i)=>{const o=actx.createOscillator(); o.type=i===0?'sine':'triangle'; o.frequency.value=f; o.detune.value=(i-1)*4; o.connect(g); o.start(); pad.push(o);});
+    pad.push({stop:()=>g.gain.linearRampToValueAtTime(0,actx.currentTime+0.4)}); }
+  function speak(t){ if(!sound||!('speechSynthesis'in window))return; speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(t), vs=speechSynthesis.getVoices();
+    u.voice=vs.find(v=>/en(-|_)?(US|GB)/i.test(v.lang)&&/Google|Microsoft|Natural|Samantha|Daniel/i.test(v.name))||vs.find(v=>/^en/i.test(v.lang))||vs[0];
+    u.rate=1.05; speechSynthesis.speak(u); }
+  function show(n){ scenes.forEach((s,i)=>s.classList.toggle('active',i===n)); if(sound){speak(vo[n]); chord(CH[n]);} }
+  function tick(now){ if(!t0)t0=now; const e=now-t0; fill.style.width=Math.min(100,e/total*100)+'%'; if(e<total)raf=requestAnimationFrame(tick); }
+  function play(ws){ sound=!!ws; idx=0;t0=0; cancelAnimationFrame(raf); clearTimeout(timer); if(window.speechSynthesis)speechSynthesis.cancel();
+    replay.classList.remove('show'); fill.style.width='0%';
+    if(sound){ initAudio(); if(actx.state==='suspended')actx.resume(); master.gain.linearRampToValueAtTime(0.06,actx.currentTime+0.5); } else if(master){ master.gain.value=0; stopPad(); }
+    soundBtn.classList.toggle('playing',sound); show(0); raf=requestAnimationFrame(tick);
+    const adv=()=>{ idx++; if(idx<scenes.length){ show(idx); timer=setTimeout(adv,durs[idx]); } else { replay.classList.add('show'); if(master&&sound)master.gain.linearRampToValueAtTime(0,actx.currentTime+0.8);} };
+    timer=setTimeout(adv,durs[0]); }
+  if('speechSynthesis'in window){ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices(); }
+  replay.addEventListener('click',()=>play(sound)); soundBtn.addEventListener('click',()=>play(true)); play(false);
+</script>
+</body>
+</html>

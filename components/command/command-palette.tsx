@@ -76,6 +76,15 @@ export function CommandPalette({
           >
             How to use this app
           </CommandItem>
+          <CommandItem
+            value="Watch the ad"
+            onSelect={() => {
+              setOpen(false);
+              window.open("/ad.html", "_blank", "noopener");
+            }}
+          >
+            Watch the ad
+          </CommandItem>
         </CommandGroup>
       </CommandList>
     </CommandDialog>

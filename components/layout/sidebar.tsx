@@ -10,6 +10,7 @@ import {
   Settings,
   Scale,
   HelpCircle,
+  Clapperboard,
 } from "lucide-react";
 import { PlanBadge, ModelQuotaIndicator } from "@/components/billing";
 import type { Plan } from "@/lib/entitlements";
@@ -101,6 +102,15 @@ export function Sidebar({
         >
           <HelpCircle className="h-4 w-4" />
           How to use
+        </a>
+        <a
+          href="/ad.html"
+          target="_blank"
+          rel="noopener"
+          className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-ink transition-colors hover:bg-accent"
+        >
+          <Clapperboard className="h-4 w-4" />
+          Watch the ad
         </a>
       </div>
       <div className="border-t border-hairline px-3 py-3">
