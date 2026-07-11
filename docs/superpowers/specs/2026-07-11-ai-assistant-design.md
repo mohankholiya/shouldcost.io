@@ -27,8 +27,12 @@ presented as certified. Deployable with the feature inert until the API key is s
 
 - `lib/ai/client.ts` — Anthropic client factory. **Guarded on `ANTHROPIC_API_KEY`**: exposes
   `isAiEnabled()` (server) so UI can hide/disable AI affordances when the key is absent; throws a
-  clean 503-style error if a route is hit without a key. Model IDs verified against the `claude-api`
-  skill at build time; default drafting/explaining model = Claude Sonnet 5 (`claude-sonnet-5`).
+  clean 503-style error if a route is hit without a key. Default model =
+  **Claude Opus 4.8** (`claude-opus-4-8`) per claude-api guidance (don't downgrade for
+  cost without the user asking); a `SHOULDCOST_AI_MODEL` env override allows a cheaper
+  tier later. Uses `@anthropic-ai/sdk`: `messages.parse` + `zodOutputFormat` for
+  structured drafts/suggestions, `messages.stream` for the gap explainer, adaptive
+  thinking on the drafter.
 - `lib/ai/schemas.ts` — Zod schemas for structured outputs (CBS draft, node suggestion). Claude
   returns structured JSON via tool-use; the raw response is Zod-validated before any DB write.
 - `lib/ai/rate-limit.ts` — pure `checkRateLimit(orgId, now, hits)` helper (in-memory/token-bucket
