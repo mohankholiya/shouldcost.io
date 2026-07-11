@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>shouldcost.io — How to use</title>
+<style>
+  :root{
+    --petrol-900:#0d2838; --petrol-700:#0a344f; --petrol-600:#0b3c5d; --petrol-400:#5e90b3;
+    --petrol-50:#f1f6fa; --canvas:#fafaf8; --card:#ffffff; --ink:#1a1a1a; --muted:#6b6b66;
+    --hairline:#e5e5e0; --favor:#059669; --amber:#f59e0b;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+    --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    font-family:var(--sans); color:var(--ink); background:
+      radial-gradient(1200px 600px at 80% -10%, var(--petrol-50), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, #eef4f8, transparent 55%),
+      var(--canvas);
+    overflow:hidden;
+  }
+  .deck{position:fixed;inset:0}
+
+  /* progress */
+  .progress{position:fixed;top:0;left:0;height:3px;background:var(--petrol-600);width:0;z-index:20;transition:width .5s cubic-bezier(.4,0,.2,1)}
+
+  /* slides */
+  .slide{
+    position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;
+    padding:clamp(28px,6vw,96px); opacity:0; transform:translateY(24px) scale(.995);
+    pointer-events:none; transition:opacity .5s ease, transform .5s cubic-bezier(.2,.7,.2,1);
+  }
+  .slide.active{opacity:1;transform:none;pointer-events:auto}
+  .slide.active .reveal{animation:rise .6s both}
+  .slide.active .reveal:nth-child(1){animation-delay:.06s}
+  .slide.active .reveal:nth-child(2){animation-delay:.16s}
+  .slide.active .reveal:nth-child(3){animation-delay:.26s}
+  .slide.active .reveal:nth-child(4){animation-delay:.36s}
+  .slide.active .reveal:nth-child(5){animation-delay:.46s}
+  .slide.active .reveal:nth-child(6){animation-delay:.56s}
+  @keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+
+  .kicker{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--petrol-600);font-weight:600;margin-bottom:14px}
+  h1{font-family:var(--serif);font-weight:600;line-height:1.04;letter-spacing:-.01em;margin:0;
+     font-size:clamp(34px,6.4vw,76px)}
+  h2{font-family:var(--serif);font-weight:600;line-height:1.06;margin:0 0 10px;font-size:clamp(28px,4.6vw,52px)}
+  .lead{font-size:clamp(17px,2.1vw,24px);color:var(--muted);max-width:60ch;line-height:1.5;margin-top:18px}
+  .em{color:var(--petrol-600)}
+  .wrap{max-width:1100px;width:100%;margin:0 auto}
+
+  /* title */
+  .brand-dot{display:inline-block;width:12px;height:12px;border-radius:50%;background:var(--petrol-600);margin-right:10px;vertical-align:middle}
+  .cta{display:inline-flex;align-items:center;gap:10px;margin-top:34px;background:var(--petrol-600);color:#fff;
+       padding:14px 22px;border-radius:10px;text-decoration:none;font-weight:600;font-size:16px;
+       box-shadow:0 8px 24px rgba(13,40,56,.18);transition:transform .2s ease, box-shadow .2s ease}
+  .cta:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(13,40,56,.24)}
+  .url{font-family:ui-monospace,monospace;color:var(--muted);margin-top:14px;font-size:15px}
+
+  /* cards / grids */
+  .grid{display:grid;gap:18px;margin-top:26px}
+  .g2{grid-template-columns:repeat(2,1fr)} .g3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:820px){.g2,.g3{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--hairline);border-radius:14px;padding:22px;
+        box-shadow:0 1px 0 rgba(13,40,56,.03)}
+  .card h3{margin:0 0 6px;font-size:19px}
+  .card p{margin:0;color:var(--muted);line-height:1.5;font-size:15px}
+  .ico{font-size:26px;line-height:1;margin-bottom:12px;display:block}
+
+  /* steps flow */
+  .flow{display:flex;flex-wrap:wrap;gap:14px;margin-top:30px;align-items:stretch}
+  .step{flex:1 1 150px;background:var(--card);border:1px solid var(--hairline);border-radius:14px;padding:20px;position:relative}
+  .step .n{width:30px;height:30px;border-radius:50%;background:var(--petrol-600);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;margin-bottom:12px}
+  .step h4{margin:0 0 4px;font-size:16px}
+  .step p{margin:0;color:var(--muted);font-size:13.5px;line-height:1.45}
+  .step .arrow{position:absolute;right:-11px;top:50%;transform:translateY(-50%);color:var(--petrol-400);font-size:20px;z-index:2}
+  @media(max-width:820px){.step .arrow{display:none}}
+
+  /* animated bar visual */
+  .chart{display:flex;align-items:flex-end;gap:16px;height:230px;margin-top:26px;padding:0 6px}
+  .bar{width:64px;border-radius:8px 8px 0 0;background:linear-gradient(180deg,var(--petrol-400),var(--petrol-600));
+       height:0;transition:height .9s cubic-bezier(.2,.8,.2,1);position:relative}
+  .bar.q{background:linear-gradient(180deg,#c8d7e2,#8fb6cf)}
+  .bar span{position:absolute;top:-24px;left:0;right:0;text-align:center;font-family:ui-monospace,monospace;font-size:13px;color:var(--ink)}
+  .bar small{position:absolute;bottom:-26px;left:0;right:0;text-align:center;color:var(--muted);font-size:12px}
+  .slide.active .bar{height:var(--h)}
+  .gaptag{align-self:flex-end;margin-bottom:8px;background:var(--favor);color:#fff;padding:6px 12px;border-radius:20px;font-size:13px;font-weight:600}
+
+  .pill{display:inline-block;background:var(--petrol-50);color:var(--petrol-700);border:1px solid #dbe8f1;padding:5px 12px;border-radius:20px;font-size:13px;font-weight:600;margin:0 6px 8px 0}
+
+  /* nav */
+  .nav{position:fixed;bottom:22px;left:0;right:0;display:flex;align-items:center;justify-content:center;gap:14px;z-index:20}
+  .dots{display:flex;gap:8px}
+  .dot{width:9px;height:9px;border-radius:50%;background:#cfd6d3;border:none;cursor:pointer;padding:0;transition:all .3s}
+  .dot.on{background:var(--petrol-600);transform:scale(1.25)}
+  .btn{background:var(--card);border:1px solid var(--hairline);border-radius:10px;padding:9px 14px;cursor:pointer;font-size:14px;color:var(--ink);font-weight:600}
+  .btn:hover{border-color:var(--petrol-400)}
+  .hint{position:fixed;bottom:24px;right:24px;color:var(--muted);font-size:12.5px;z-index:20}
+  .count{position:fixed;top:20px;right:24px;color:var(--muted);font-size:13px;font-family:ui-monospace,monospace;z-index:20}
+  @media(max-width:820px){.hint{display:none}}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="count" id="count">01 / 07</div>
+<div class="deck" id="deck">
+
+  <!-- 1. Title -->
+  <section class="slide active">
+    <div class="wrap">
+      <div class="kicker reveal">Should-cost modeling · procurement</div>
+      <h1 class="reveal"><span class="brand-dot"></span>shouldcost.io</h1>
+      <p class="lead reveal">Build transparent, defensible cost models — and walk into every supplier
+        negotiation with <span class="em">evidence, not a guess.</span></p>
+      <a class="cta reveal" href="https://shouldcost-io.vercel.app" target="_blank" rel="noopener">Open the live app →</a>
+      <div class="url reveal">shouldcost-io.vercel.app</div>
+    </div>
+  </section>
+
+  <!-- 2. What it is -->
+  <section class="slide">
+    <div class="wrap">
+      <div class="kicker reveal">What it is</div>
+      <h2 class="reveal">Rebuild what a part <span class="em">should</span> cost — from first principles.</h2>
+      <p class="lead reveal">Instead of accepting a supplier's price, break any bought part or service
+        into its true cost drivers: material, process, labour, overhead, and margin. Link them to live
+        commodity indices, then benchmark quotes line-by-line.</p>
+      <div class="grid g3">
+        <div class="card reveal"><span class="ico">🧱</span><h3>Transparent</h3><p>Every driver is visible and editable — no black box.</p></div>
+        <div class="card reveal"><span class="ico">📈</span><h3>Defensible</h3><p>Bound to real commodity indices, so it re-prices as markets move.</p></div>
+        <div class="card reveal"><span class="ico">📤</span><h3>Portable</h3><p>Export to Excel with the formulas intact.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Who uses it -->
+  <section class="slide">
+    <div class="wrap">
+      <div class="kicker reveal">Who it's for</div>
+      <h2 class="reveal">Anyone who has to <span class="em">defend a number</span> to a supplier.</h2>
+      <div class="grid g2">
+        <div class="card reveal"><span class="ico">🎯</span><h3>Procurement &amp; category leaders</h3><p>A defensible baseline to anchor negotiations and cost-out programmes.</p></div>
+        <div class="card reveal"><span class="ico">🗂️</span><h3>Strategic sourcing / category managers</h3><p>Line-by-line should-cost vs quote, gap waterfalls, and negotiation levers.</p></div>
+        <div class="card reveal"><span class="ico">🛠️</span><h3>Cost engineers &amp; estimators</h3><p>A structured CBS with live rollup, index binding, and versioning.</p></div>
+        <div class="card reveal"><span class="ico">💼</span><h3>Consultants &amp; expert advisors</h3><p>Fast, presentable models to size opportunities for clients.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. How it works (flow) -->
+  <section class="slide">
+    <div class="wrap">
+      <div class="kicker reveal">How it works</div>
+      <h2 class="reveal">From a blank page to a negotiation-ready model.</h2>
+      <div class="flow">
+        <div class="step reveal"><div class="n">1</div><h4>Model</h4><p>Build a cost breakdown, or draft one with AI.</p><span class="arrow">→</span></div>
+        <div class="step reveal"><div class="n">2</div><h4>Bind</h4><p>Link drivers to commodity indices.</p><span class="arrow">→</span></div>
+        <div class="step reveal"><div class="n">3</div><h4>Quote</h4><p>Enter supplier quotes, total or line-by-line.</p><span class="arrow">→</span></div>
+        <div class="step reveal"><div class="n">4</div><h4>Compare</h4><p>Gap waterfall + insights show where it's high.</p><span class="arrow">→</span></div>
+        <div class="step reveal"><div class="n">5</div><h4>Negotiate</h4><p>Export to Excel and take it to the table.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. The core view (animated chart) -->
+  <section class="slide">
+    <div class="wrap">
+      <div class="kicker reveal">The core value</div>
+      <h2 class="reveal">See the gap the moment a quote lands.</h2>
+      <p class="lead reveal">Your should-cost baseline vs the supplier's quote — visualised, so the
+        conversation is about the <span class="em">difference</span>, line by line.</p>
+      <div class="chart reveal" aria-hidden="true">
+        <div class="bar" style="--h:150px"><span>$1.00m</span><small>Should-cost</small></div>
+        <div class="bar q" style="--h:210px"><span>$1.28m</span><small>Supplier quote</small></div>
+        <div class="gaptag">↓ $0.28m gap to close</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. AI -->
+  <section class="slide">
+    <div class="wrap">
+      <div class="kicker reveal">AI assistant · Claude Opus 4.8</div>
+      <h2 class="reveal">Let AI do the first draft.</h2>
+      <p class="lead reveal">Three assists — every AI value is a <span class="em">labelled draft you review</span>, never a certified figure.</p>
+      <div class="grid g3">
+        <div class="card reveal"><span class="ico">✍️</span><h3>Draft with AI</h3><p>Describe a part in plain English → an editable cost model.</p></div>
+        <div class="card reveal"><span class="ico">💡</span><h3>Suggest with AI</h3><p>Get a likely cost driver + a realistic rate range for a line.</p></div>
+        <div class="card reveal"><span class="ico">🧭</span><h3>Explain with AI</h3><p>A plain-language negotiation brief for any quote gap.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. Get started -->
+  <section class="slide">
+    <div class="wrap">
+      <div class="kicker reveal">Get started</div>
+      <h2 class="reveal">Five steps to your first model.</h2>
+      <div class="reveal" style="margin-top:8px">
+        <span class="pill">1 · Sign in (Google or magic link)</span>
+        <span class="pill">2 · Create a model — template or “Draft with AI”</span>
+        <span class="pill">3 · Refine drivers &amp; bind indices</span>
+        <span class="pill">4 · Add quotes → compare the gap</span>
+        <span class="pill">5 · Export &amp; negotiate</span>
+      </div>
+      <p class="lead reveal">Free during beta — the full product is unlocked.</p>
+      <a class="cta reveal" href="https://shouldcost-io.vercel.app" target="_blank" rel="noopener">Start now → shouldcost-io.vercel.app</a>
+    </div>
+  </section>
+
+</div>
+
+<div class="nav">
+  <button class="btn" id="prev" aria-label="Previous">‹ Prev</button>
+  <div class="dots" id="dots"></div>
+  <button class="btn" id="next" aria-label="Next">Next ›</button>
+</div>
+<div class="hint">← → arrow keys to navigate</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const dotsWrap = document.getElementById('dots');
+  const progress = document.getElementById('progress');
+  const count = document.getElementById('count');
+  let i = 0;
+
+  slides.forEach((_, idx) => {
+    const b = document.createElement('button');
+    b.className = 'dot' + (idx === 0 ? ' on' : '');
+    b.setAttribute('aria-label', 'Go to slide ' + (idx + 1));
+    b.addEventListener('click', () => go(idx));
+    dotsWrap.appendChild(b);
+  });
+  const dots = Array.from(dotsWrap.children);
+
+  function go(n){
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((s, idx) => s.classList.toggle('active', idx === i));
+    dots.forEach((d, idx) => d.classList.toggle('on', idx === i));
+    progress.style.width = ((i + 1) / slides.length * 100) + '%';
+    count.textContent = String(i + 1).padStart(2, '0') + ' / ' + String(slides.length).padStart(2, '0');
+  }
+  function next(){ go(i + 1); }
+  function prev(){ go(i - 1); }
+
+  document.getElementById('next').addEventListener('click', next);
+  document.getElementById('prev').addEventListener('click', prev);
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown'){ e.preventDefault(); next(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp'){ e.preventDefault(); prev(); }
+    else if (e.key === 'Home'){ go(0); }
+    else if (e.key === 'End'){ go(slides.length - 1); }
+  });
+  // click right / left half of the screen to advance (ignore links & buttons)
+  document.getElementById('deck').addEventListener('click', (e) => {
+    if (e.target.closest('a,button')) return;
+    (e.clientX > window.innerWidth / 2 ? next : prev)();
+  });
+  go(0);
+</script>
+</body>
+</html>
