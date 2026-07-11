@@ -2,11 +2,13 @@
 import { describe, it, expect } from "vitest";
 import {
   ENTITLEMENTS,
+  FREE_LAUNCH,
   getEntitlement,
   canUseFeature,
   canUseTemplate,
   canCreateModel,
   resolvePlan,
+  resolveEffectivePlan,
   EntitlementError,
 } from "@/lib/entitlements";
 
@@ -86,6 +88,32 @@ describe("resolvePlan", () => {
 
   it("no subscription on a non-demo org is free", () => {
     expect(resolvePlan({ subscription: null, isDemo: false, now })).toBe("free");
+  });
+});
+
+describe("resolveEffectivePlan (free-launch mode)", () => {
+  const now = new Date("2026-07-05T00:00:00Z");
+  const future = new Date("2026-08-05T00:00:00Z");
+
+  it("free-launch is currently on", () => {
+    // Guards the other assertions in this block; flip when billing returns.
+    expect(FREE_LAUNCH).toBe(true);
+  });
+
+  it("elevates an unsubscribed org from free to pro while launched", () => {
+    expect(resolvePlan({ subscription: null, isDemo: false, now })).toBe("free");
+    expect(resolveEffectivePlan({ subscription: null, isDemo: false, now })).toBe("pro");
+  });
+
+  it("leaves demo orgs and real paid subscriptions unchanged", () => {
+    expect(resolveEffectivePlan({ subscription: null, isDemo: true, now })).toBe("team");
+    expect(
+      resolveEffectivePlan({
+        subscription: { plan: "team", status: "active", currentPeriodEnd: future },
+        isDemo: false,
+        now,
+      }),
+    ).toBe("team");
   });
 });
 

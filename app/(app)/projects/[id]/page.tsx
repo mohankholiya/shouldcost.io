@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { surfaceVariants } from "@/components/ui/surface";
 import { getCurrentOrg } from "@/lib/db/orgs";
 import { findActiveSubscriptionByOrg, toSnapshot } from "@/lib/db/subscriptions";
-import { resolvePlan, type Plan } from "@/lib/entitlements";
+import { resolveEffectivePlan, type Plan } from "@/lib/entitlements";
 
 type ProjectRow = { id: string; name: string };
 type ModelRow = { id: string; name: string; status: string };
@@ -18,7 +18,7 @@ export default async function ProjectDetail({ params }: { params: Promise<{ id: 
   const org = await getCurrentOrg();
   const isDemo = Boolean(org?.organizations?.is_demo);
   const sub = org ? await findActiveSubscriptionByOrg(org.org_id) : null;
-  const plan: Plan = resolvePlan({ subscription: toSnapshot(sub), isDemo });
+  const plan: Plan = resolveEffectivePlan({ subscription: toSnapshot(sub), isDemo });
   const supabase = await createServerClient();
   const { data: project } = await supabase
     .from("projects")

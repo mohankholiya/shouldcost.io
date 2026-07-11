@@ -5,7 +5,7 @@ import { saveVersion } from "@/lib/db/versions";
 import { createModel, countModelsByOrg } from "@/lib/db/models";
 import { getCurrentOrg } from "@/lib/db/orgs";
 import { createServerClient } from "@/lib/supabase/server";
-import { resolvePlan, canCreateModel, canUseTemplate } from "@/lib/entitlements";
+import { resolveEffectivePlan, canCreateModel, canUseTemplate } from "@/lib/entitlements";
 import { findActiveSubscriptionByOrg, toSnapshot } from "@/lib/db/subscriptions";
 
 export async function createProjectAction(input: unknown) {
@@ -74,7 +74,7 @@ export async function instantiateModelAction(input: unknown): Promise<Instantiat
   if (!org?.organizations) throw new Error("No organization for the current user");
   const isDemo = Boolean(org.organizations.is_demo);
   const sub = await findActiveSubscriptionByOrg(org.org_id);
-  const plan = resolvePlan({ subscription: toSnapshot(sub), isDemo });
+  const plan = resolveEffectivePlan({ subscription: toSnapshot(sub), isDemo });
 
   if (templateSlug && !canUseTemplate(plan, templateSlug)) {
     return { error: "TEMPLATE_LOCKED", requiredPlan: "pro" };

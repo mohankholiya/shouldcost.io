@@ -5,6 +5,8 @@ import { KpiTile } from "@/components/shared/kpi-tile";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
 import { Surface } from "@/components/ui/surface";
+import { deriveOnboardingSteps } from "@/lib/onboarding/steps";
+import { OnboardingChecklist } from "@/components/onboarding/onboarding-checklist";
 
 type ModelRow = {
   id: string;
@@ -23,6 +25,15 @@ export default async function DashboardPage() {
   const models = (data ?? []) as ModelRow[];
   const totalMinor = models.reduce((sum, m) => sum + (m.model_versions?.[0]?.total_cost ?? 0), 0);
   const isEmpty = models.length === 0;
+
+  // RLS-scoped quote count feeds the onboarding checklist (head-only, no rows returned).
+  const { count: quoteCount } = await supabase
+    .from("quotes")
+    .select("id", { count: "exact", head: true });
+  const onboardingSteps = deriveOnboardingSteps({
+    modelCount: models.length,
+    quoteCount: quoteCount ?? 0,
+  });
 
   return (
     <>
@@ -52,6 +63,7 @@ export default async function DashboardPage() {
         />
       ) : (
         <>
+          <OnboardingChecklist steps={onboardingSteps} />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <KpiTile
               label="Addressed spend"
