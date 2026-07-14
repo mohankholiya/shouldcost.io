@@ -9,6 +9,7 @@ export type ModelHeader = {
   name: string;
   currency: string;
   project_id: string;
+  project_name: string;
   status: string;
 };
 
@@ -16,10 +17,17 @@ export async function loadModel(id: string): Promise<ModelHeader | null> {
   const supabase = await createServerClient();
   const { data } = await supabase
     .from("cost_models")
-    .select("id, name, currency, project_id, status")
+    .select("id, name, currency, project_id, status, projects(name)")
     .eq("id", id)
     .maybeSingle();
-  return (data as ModelHeader | null) ?? null;
+  if (!data) return null;
+  // PostgREST returns an embedded relation as an array; cost_models → projects
+  // is many-to-one, so the panel is at most one element (empty when the FK is
+  // unset). Take the first element and fall back to "Project".
+  const row = data as Omit<ModelHeader, "project_name"> & {
+    projects: { name: string }[] | null;
+  };
+  return { ...row, project_name: row.projects?.[0]?.name ?? "Project" };
 }
 
 export async function createModel(

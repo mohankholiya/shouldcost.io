@@ -8,6 +8,7 @@ import { CbsTree } from "@/components/models/cbs-tree/cbs-tree";
 import { AnimatedCounter } from "@/components/number/animated-counter";
 import { SavedIndicator } from "@/components/shared/saved-indicator";
 import { PageHeader } from "@/components/shared/page-header";
+import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { saveNodesAction } from "@/lib/actions/model";
 import { IndicesProvider } from "@/components/models/indices-context";
 import { VersionBar } from "@/components/models/version-bar";
@@ -79,6 +80,17 @@ export function ModelEditor({
       <PageHeader
         title={model.name}
         subtitle="Cost-model editor"
+        back={{ href: `/projects/${model.project_id}`, label: "Back to Project" }}
+        breadcrumbs={
+          <Breadcrumbs
+            items={[
+              { label: "Home", href: "/dashboard" },
+              { label: "Projects", href: "/projects" },
+              { label: model.project_name, href: `/projects/${model.project_id}` },
+              { label: model.name },
+            ]}
+          />
+        }
         actions={
           <div className="flex items-center gap-4">
             <Button asChild variant="outline" size="sm">

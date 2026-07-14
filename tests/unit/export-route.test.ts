@@ -35,7 +35,7 @@ function call(qs: string) {
   });
 }
 
-const model = { id: "m1", name: "OCTG Casing", currency: "USD", project_id: "p", status: "draft" };
+const model = { id: "m1", name: "OCTG Casing", currency: "USD", project_id: "p", project_name: "Project", status: "draft" };
 const nodes: CostNodeRow[] = [
   { id: "g", model_id: "m1", parent_id: null, sort_order: 0, name: "Materials", node_type: "group", driver_name: null, quantity: null, unit: null, rate: null, rate_source: "manual", index_id: null, index_factor: null, formula: null, notes: null },
   { id: "l", model_id: "m1", parent_id: "g", sort_order: 0, name: "Steel", node_type: "line", driver_name: "tonnes", quantity: 2, unit: "t", rate: 100000, rate_source: "manual", index_id: null, index_factor: null, formula: null, notes: null },
