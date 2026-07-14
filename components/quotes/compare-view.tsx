@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/shared/page-header";
+import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -25,6 +26,7 @@ import type { Plan } from "@/lib/entitlements";
 export function CompareView({
   modelId,
   modelName,
+  projectId,
   currency,
   nodes,
   quotes,
@@ -32,6 +34,7 @@ export function CompareView({
 }: {
   modelId: string;
   modelName: string;
+  projectId: string;
   currency: Currency;
   nodes: CostNodeRow[];
   quotes: QuoteWithLines[];
@@ -89,8 +92,19 @@ export function CompareView({
   return (
     <div className="space-y-6">
       <PageHeader
-        title={modelName}
-        subtitle="Quotes &amp; comparison"
+        title="Compare quotes"
+        subtitle={modelName}
+        back={{ href: `/models/${modelId}`, label: "Back to Model" }}
+        breadcrumbs={
+          <Breadcrumbs
+            items={[
+              { label: "Home", href: "/dashboard" },
+              { label: "Projects", href: "/projects" },
+              { label: modelName, href: `/projects/${projectId}` },
+              { label: "Compare quotes" },
+            ]}
+          />
+        }
         actions={
           <div className="flex items-center gap-3">
             <ExportMenu modelId={modelId} plan={plan} quoteId={activeId ?? undefined} />

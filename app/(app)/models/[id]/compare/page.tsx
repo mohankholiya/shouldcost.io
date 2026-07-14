@@ -21,6 +21,7 @@ export default async function ComparePage({ params }: { params: Promise<{ id: st
     <CompareView
       modelId={model.id}
       modelName={model.name}
+      projectId={model.project_id}
       currency={model.currency as Currency}
       nodes={nodes}
       quotes={quotes}
