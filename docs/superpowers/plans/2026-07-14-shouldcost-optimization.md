@@ -787,7 +787,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { ChartContainer } from "./chart-container";
 import { useDebouncedEditorSnapshot } from "./use-debounced-editor-snapshot";
 import { useChartColors } from "./use-chart-colors";
-import { donutData, type Slice } from "./rollup-donut";
+import { buildTree } from "@/lib/model/tree";
 import { formatCurrency } from "@/lib/format";
 import { CHART_SURFACE } from "@/lib/chart-palette";
 import { useTheme } from "next-themes";
