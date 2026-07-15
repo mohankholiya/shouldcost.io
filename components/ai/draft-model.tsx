@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { UpgradePrompt } from "@/components/billing";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { createModelFromDraftAction } from "@/lib/actions/model";
 import type { ModelDraft } from "@/lib/ai/schemas";
+import type { Plan } from "@/lib/entitlements";
 
 /** "Draft with AI": describe a part/service → Claude drafts an editable cost model (USD). */
 export function DraftModel({ projectId }: { projectId: string }) {
@@ -13,11 +15,13 @@ export function DraftModel({ projectId }: { projectId: string }) {
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [blocked, setBlocked] = useState<Plan | null>(null);
 
   async function run() {
     if (!description.trim()) return;
     setLoading(true);
     setError(null);
+    setBlocked(null);
     try {
       const res = await fetch("/api/ai/draft-model", {
         method: "POST",
@@ -25,13 +29,19 @@ export function DraftModel({ projectId }: { projectId: string }) {
         body: JSON.stringify({ description, currency: "USD" }),
       });
       if (!res.ok) {
-        setError(
-          res.status === 503
-            ? "AI isn’t enabled yet."
-            : res.status === 429
-              ? "Too many AI requests — try again later."
-              : "Couldn’t draft a model. Try rephrasing.",
-        );
+        // 402 = free-tier AI credits exhausted → upgrade gate, not a retryable error.
+        if (res.status === 402) {
+          const body = (await res.json().catch(() => ({}))) as { requiredPlan?: Plan };
+          setBlocked(body.requiredPlan ?? "pro");
+        } else {
+          setError(
+            res.status === 503
+              ? "AI isn’t enabled yet."
+              : res.status === 429
+                ? "Too many AI requests — try again later."
+                : "Couldn’t draft a model. Try rephrasing.",
+          );
+        }
         return;
       }
       const draft = (await res.json()) as ModelDraft;
@@ -64,6 +74,9 @@ export function DraftModel({ projectId }: { projectId: string }) {
           Creates an editable draft in USD — all values are AI estimates to verify.
         </span>
       </div>
+      {blocked && (
+        <UpgradePrompt title="You’re out of free AI drafts" requiredPlan={blocked} />
+      )}
       {error && <p className="text-sm text-danger">{error}</p>}
     </div>
   );
