@@ -29,7 +29,7 @@ function pct(part: number, base: number): number | null {
 }
 
 /** Leaf lines in tree (sort) order — a `line` node with no children. */
-function leafLines(nodes: CostNodeRow[]): CostNodeRow[] {
+export function leafLines(nodes: CostNodeRow[]): CostNodeRow[] {
   const { roots } = buildTree(nodes);
   const out: CostNodeRow[] = [];
   const walk = (ns: TreeNode[]) =>

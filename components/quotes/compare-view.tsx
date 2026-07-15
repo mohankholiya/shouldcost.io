@@ -15,7 +15,7 @@ import { GapWaterfall } from "@/components/quotes/gap-waterfall";
 import { InsightCards } from "@/components/quotes/insight-cards";
 import { ExplainGapPanel } from "@/components/ai/explain-gap-panel";
 import { ExportMenu } from "@/components/export/export-menu";
-import { buildComparison } from "@/lib/model/comparison";
+import { buildComparison, leafLines } from "@/lib/model/comparison";
 import { rollupLive } from "@/lib/model/rollup-live";
 import { buildTree } from "@/lib/model/tree";
 import type { CostNodeRow } from "@/lib/model/types";
@@ -46,14 +46,7 @@ export function CompareView({
   const [open, setOpen] = useState(false);
 
   const rollup = useMemo(() => rollupLive(buildTree(nodes)), [nodes]);
-  const leafLines = useMemo(
-    () =>
-      buildComparison(nodes, rollup, { quoted_total: 0, lines: [] }).rows.map((r) => ({
-        id: r.nodeId,
-        name: r.name,
-      })),
-    [nodes, rollup],
-  );
+  const leafLineRows = useMemo(() => leafLines(nodes), [nodes]);
   const active = quotes.find((q) => q.id === activeId) ?? null;
   const comparison = active ? buildComparison(nodes, rollup, active) : null;
 
@@ -81,7 +74,7 @@ export function CompareView({
         <QuoteForm
           modelId={modelId}
           currency={currency}
-          leafLines={leafLines}
+          leafLines={leafLineRows}
           initial={editing}
           onSaved={refresh}
         />
