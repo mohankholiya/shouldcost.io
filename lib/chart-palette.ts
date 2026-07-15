@@ -58,3 +58,34 @@ export const CATEGORICAL_CHART = [...PETROL_RAMP, AMBER_CHART, FAVOR_CHART] as c
 export function rampColor(i: number): string {
   return CATEGORICAL_CHART[i % CATEGORICAL_CHART.length] ?? PETROL_600
 }
+
+/**
+ * Validated categorical palette for the composition donut (light). CVD ΔE 24.2;
+ * the aqua/yellow contrast WARN is satisfied by the always-present side legend
+ * and the table view (secondary encoding).
+ */
+export const CHART_CATEGORICAL_LIGHT = [
+  "#2a78d6",
+  "#1baf7a",
+  "#eda100",
+  "#008300",
+  "#4a3aa7",
+  "#e34948",
+] as const
+
+/** Same hues stepped for the dark surface (#1a1a19). */
+export const CHART_CATEGORICAL_DARK = [
+  "#3987e5",
+  "#199e70",
+  "#c98500",
+  "#008300",
+  "#9085e9",
+  "#e66767",
+] as const
+
+/** Validated diverging pair for the sensitivity tornado (amber up / green down). CVD ΔE 32.3. */
+export const DIVERGING_LIGHT = { up: "#b45309", down: "#059669", mid: "#c3c2b7" } as const
+export const DIVERGING_DARK = { up: "#b45309", down: "#059669", mid: "#383835" } as const
+
+/** Chart surface backgrounds (light/dark) for slice gaps and SVG export. */
+export const CHART_SURFACE = { light: "#fcfcfb", dark: "#1a1a19" } as const
