@@ -21,12 +21,12 @@ type Org = Awaited<ReturnType<typeof getCurrentOrg>>;
 const demoOrg = {
   org_id: "o1",
   role: "owner",
-  organizations: { id: "o1", name: "Demo", plan: "team", is_demo: true },
+  organizations: { id: "o1", name: "Demo", plan: "team", is_demo: true, ai_draft_credits: 1 },
 } satisfies NonNullable<Org>;
 const freeOrg = {
   org_id: "o2",
   role: "owner",
-  organizations: { id: "o2", name: "Free", plan: "free", is_demo: false },
+  organizations: { id: "o2", name: "Free", plan: "free", is_demo: false, ai_draft_credits: 1 },
 } satisfies NonNullable<Org>;
 
 function call(qs: string) {
@@ -50,16 +50,16 @@ describe("GET /api/models/[id]/export", () => {
     expect((await call("?format=csv")).status).toBe(400);
   });
 
-  it("elevates a Free plan to the full product during the free-launch beta", async () => {
-    // FREE_LAUNCH mode: an unsubscribed org resolves to `pro`, so the export
-    // gate passes instead of redirecting to upgrade. The pure gate that blocks
-    // a genuine `free` plan is still covered in export-gate.test.ts.
+  it("redirects a Free plan to upgrade now that billing is live (free-launch off)", async () => {
+    // FREE_LAUNCH is off: an unsubscribed org resolves to `free`, so the export
+    // gate redirects to upgrade instead of passing. Demo/paid export is covered
+    // by the "200 xlsx" test below; the pure gate is in export-gate.test.ts.
     vi.mocked(getCurrentOrg).mockResolvedValue(freeOrg);
     vi.mocked(loadModel).mockResolvedValue(model);
     vi.mocked(loadNodes).mockResolvedValue(nodes);
     const res = await call("?format=xlsx");
-    expect(res.status).toBe(200);
-    expect(res.headers.get("content-type")).toContain("spreadsheetml");
+    expect([302, 307]).toContain(res.status);
+    expect(res.headers.get("location")).toContain("/settings/billing/upgrade");
   });
 
   it("redirects to /login when there is no org", async () => {

@@ -7,6 +7,8 @@ import {
   canUseFeature,
   canUseTemplate,
   canCreateModel,
+  aiDraftCreditsFor,
+  canDraftWithAi,
   resolvePlan,
   resolveEffectivePlan,
   EntitlementError,
@@ -68,6 +70,24 @@ describe("decisions", () => {
   });
 });
 
+describe("AI draft entitlements", () => {
+  it("free gets 1 credit; pro/team are unlimited", () => {
+    expect(aiDraftCreditsFor("free")).toBe(1);
+    expect(aiDraftCreditsFor("pro")).toBeNull();
+    expect(aiDraftCreditsFor("team")).toBeNull();
+  });
+  it("free with a remaining credit can draft; zero cannot", () => {
+    expect(canDraftWithAi("free", 1)).toBe(true);
+    expect(canDraftWithAi("free", 0)).toBe(false);
+  });
+  it("paid plans can always draft regardless of counter", () => {
+    expect(canDraftWithAi("pro", 0)).toBe(true);
+  });
+  it("FREE_LAUNCH is off", () => {
+    expect(FREE_LAUNCH).toBe(false);
+  });
+});
+
 describe("resolvePlan", () => {
   const now = new Date("2026-07-05T00:00:00Z");
   const future = new Date("2026-08-05T00:00:00Z");
@@ -91,18 +111,18 @@ describe("resolvePlan", () => {
   });
 });
 
-describe("resolveEffectivePlan (free-launch mode)", () => {
+describe("resolveEffectivePlan (billing live — free-launch off)", () => {
   const now = new Date("2026-07-05T00:00:00Z");
   const future = new Date("2026-08-05T00:00:00Z");
 
-  it("free-launch is currently on", () => {
-    // Guards the other assertions in this block; flip when billing returns.
-    expect(FREE_LAUNCH).toBe(true);
+  it("free-launch is off — billing is live", () => {
+    // Guards the other assertions in this block; flip back on if relaunching free.
+    expect(FREE_LAUNCH).toBe(false);
   });
 
-  it("elevates an unsubscribed org from free to pro while launched", () => {
+  it("no longer elevates an unsubscribed org — it stays on free", () => {
     expect(resolvePlan({ subscription: null, isDemo: false, now })).toBe("free");
-    expect(resolveEffectivePlan({ subscription: null, isDemo: false, now })).toBe("pro");
+    expect(resolveEffectivePlan({ subscription: null, isDemo: false, now })).toBe("free");
   });
 
   it("leaves demo orgs and real paid subscriptions unchanged", () => {

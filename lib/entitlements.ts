@@ -10,6 +10,7 @@ export interface Entitlement {
   accessibleTemplateSlugs: string[] | null; // null = all
   maxSeats: number;
   features: Record<Feature, boolean>;
+  aiDraftCredits: number | null; // null = unlimited
   price: { monthly: number; annual: number }; // integer minor units (USD cents)
 }
 
@@ -29,6 +30,7 @@ export const ENTITLEMENTS: Record<Plan, Entitlement> = {
     accessibleTemplateSlugs: ["octg-casing-tubing", "power-transformers", "epc-manhour-rate"],
     maxSeats: 1,
     features: { ...NO_FEATURES },
+    aiDraftCredits: 1,
     price: { monthly: 0, annual: 0 },
   },
   pro: {
@@ -38,6 +40,7 @@ export const ENTITLEMENTS: Record<Plan, Entitlement> = {
     accessibleTemplateSlugs: null,
     maxSeats: 1,
     features: { ...NO_FEATURES, export: true, shareLinks: true, versionHistory: true },
+    aiDraftCredits: null,
     price: { monthly: 4900, annual: 49000 },
   },
   team: {
@@ -47,22 +50,21 @@ export const ENTITLEMENTS: Record<Plan, Entitlement> = {
     accessibleTemplateSlugs: null,
     maxSeats: 5,
     features: { ...NO_FEATURES, export: true, shareLinks: true, versionHistory: true, auditLog: true, members: true },
+    aiDraftCredits: null,
     price: { monthly: 14900, annual: 149000 },
   },
 };
 
 /**
- * Free-launch mode. While `true`, every real (unsubscribed) org is elevated to
- * the full `pro` feature set at no cost via `resolveEffectivePlan`, and the
- * Stripe billing surfaces are hidden (the billing pages read this flag). This
- * lets the product ship free while payments are deferred.
- *
- * To re-enable paid plans: set to `false`, restore the billing UI CTAs, and
- * complete the Stripe/Vercel env setup. The `ENTITLEMENTS` catalog and the pure
- * `resolvePlan` billing-semantics resolver are intentionally left unchanged so
- * this is a clean one-line revert.
+ * Free-launch mode toggle. `false` (current) means billing is live:
+ * unsubscribed orgs stay on `free` and hit the entitlement gates, and the
+ * Stripe billing surfaces / upgrade UI are shown. Set back to `true` only to
+ * re-open the free beta — that elevates every unsubscribed org to the full
+ * `pro` feature set via `resolveEffectivePlan` and hides billing. The
+ * `ENTITLEMENTS` catalog and the pure `resolvePlan` resolver are unchanged
+ * either way, so flipping is a one-line change.
  */
-export const FREE_LAUNCH = true;
+export const FREE_LAUNCH = false;
 
 export function getEntitlement(plan: Plan): Entitlement {
   return ENTITLEMENTS[plan];
@@ -80,6 +82,17 @@ export function canUseTemplate(plan: Plan, slug: string): boolean {
 export function canCreateModel(plan: Plan, currentCount: number): boolean {
   const max = ENTITLEMENTS[plan].maxModels;
   return max === null || currentCount < max;
+}
+
+/** AI-draft credits granted by a plan; null means unlimited (pro/team). */
+export function aiDraftCreditsFor(plan: Plan): number | null {
+  return ENTITLEMENTS[plan].aiDraftCredits;
+}
+
+/** Can this org draft with AI right now? Paid plans always can; free only with a credit remaining. */
+export function canDraftWithAi(plan: Plan, creditsRemaining: number): boolean {
+  if (plan !== "free") return true; // pro/team: unlimited
+  return creditsRemaining > 0;
 }
 
 export type SubscriptionSnapshot = {
