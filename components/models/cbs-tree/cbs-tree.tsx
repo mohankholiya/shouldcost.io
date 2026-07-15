@@ -164,7 +164,7 @@ export function CbsTree({ currency = "USD" }: { currency?: Currency }) {
         },
       }),
     ],
-    [collapsed, toggle, currency],
+    [collapsed, toggle, currency, addLine, removeNode],
   );
 
   const table = useReactTable({ data: rows, columns, getCoreRowModel: getCoreRowModel() });
