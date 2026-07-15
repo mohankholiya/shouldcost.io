@@ -110,7 +110,7 @@ export function ModelEditor({
         }
       />
       <IndicesProvider value={indices}>
-        <CbsTree />
+        <CbsTree currency={model.currency as Currency} />
       </IndicesProvider>
       <NodeAiAssist currency={model.currency as Currency} />
       <div className="grid gap-4 lg:grid-cols-2">

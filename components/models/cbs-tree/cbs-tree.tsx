@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -11,7 +11,6 @@ import { ChevronDown, ChevronRight, Plus, Trash2 } from "lucide-react";
 import { useEditorStore } from "@/lib/stores/editor-store";
 import { buildTree } from "@/lib/model/tree";
 import type { TreeNode } from "@/lib/model/types";
-import { formatCurrency } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Surface } from "@/components/ui/surface";
 import { TextCell } from "./cells/text-cell";
@@ -19,27 +18,30 @@ import { NumberCell } from "./cells/number-cell";
 import { MoneyCell } from "./cells/money-cell";
 import { RateSourceCell } from "./cells/rate-source-cell";
 import { IndexBinding } from "@/components/models/index-binding";
+import { TotalCell } from "./total-cell";
+import { GrandTotal } from "./grand-total";
+import type { Currency } from "@/components/number/currency-select";
 
 type Row = { node: TreeNode; depth: number };
 
 const col = createColumnHelper<Row>();
 
-export function CbsTree() {
+export function CbsTree({ currency = "USD" }: { currency?: Currency }) {
   const nodes = useEditorStore((s) => s.nodes);
   const order = useEditorStore((s) => s.order);
-  const rollup = useEditorStore((s) => s.rollup);
   const addLine = useEditorStore((s) => s.addLine);
   const addGroup = useEditorStore((s) => s.addGroup);
   const removeNode = useEditorStore((s) => s.removeNode);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
 
-  const toggle = (id: string) =>
+  const toggle = useCallback((id: string) => {
     setCollapsed((c) => {
       const n = new Set(c);
       if (n.has(id)) n.delete(id);
       else n.add(id);
       return n;
     });
+  }, []);
 
   const rows = useMemo<Row[]>(() => {
     const tree = buildTree(order.map((id) => nodes[id]!).filter(Boolean));
@@ -130,11 +132,7 @@ export function CbsTree() {
       col.display({
         id: "total",
         header: "Total",
-        cell: ({ row }) => (
-          <span className="num">
-            {formatCurrency(rollup.byNodeId[row.original.node.id] ?? 0, "USD")}
-          </span>
-        ),
+        cell: ({ row }) => <TotalCell id={row.original.node.id} currency={currency} />,
       }),
       col.display({
         id: "actions",
@@ -166,8 +164,7 @@ export function CbsTree() {
         },
       }),
     ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [rollup, collapsed],
+    [collapsed, toggle, currency],
   );
 
   const table = useReactTable({ data: rows, columns, getCoreRowModel: getCoreRowModel() });
@@ -208,7 +205,7 @@ export function CbsTree() {
             <td className="px-2 py-2" colSpan={6}>
               Should-cost total
             </td>
-            <td className="num px-2 py-2">{formatCurrency(rollup.total, "USD")}</td>
+            <td className="num px-2 py-2"><GrandTotal currency={currency} /></td>
             <td />
           </tr>
         </tfoot>
