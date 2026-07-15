@@ -1,11 +1,14 @@
 "use client";
 
+import { useMemo } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { ChartContainer } from "./chart-container";
+import { useDebouncedEditorSnapshot } from "./use-debounced-editor-snapshot";
 import { buildTree } from "@/lib/model/tree";
 import { formatCurrency } from "@/lib/format";
 import { rampColor } from "@/lib/chart-palette";
 import type { CostNodeRow, Rollup } from "@/lib/model/types";
+import type { Currency } from "@/components/number/currency-select";
 
 export type Slice = { name: string; value: number };
 
@@ -17,8 +20,9 @@ export function donutData(nodes: CostNodeRow[], rollup: Rollup): Slice[] {
     .filter((d) => d.value > 0);
 }
 
-export function RollupDonut({ nodes, rollup }: { nodes: CostNodeRow[]; rollup: Rollup }) {
-  const data = donutData(nodes, rollup);
+export function RollupDonut({ currency = "USD" }: { currency?: Currency }) {
+  const { nodes, rollup } = useDebouncedEditorSnapshot();
+  const data = useMemo(() => donutData(nodes, rollup), [nodes, rollup]);
   const total = rollup.total || 1;
   return (
     <ChartContainer title="Cost composition" data={data}>
@@ -43,7 +47,7 @@ export function RollupDonut({ nodes, rollup }: { nodes: CostNodeRow[]; rollup: R
               />
               <span>{d.name}</span>
               <span className="num text-muted-foreground">
-                {formatCurrency(d.value, "USD")} · {Math.round((d.value / total) * 100)}%
+                {formatCurrency(d.value, currency)} · {Math.round((d.value / total) * 100)}%
               </span>
             </li>
           ))}

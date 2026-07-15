@@ -1,17 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { ChartContainer } from "./chart-container";
+import { useDebouncedEditorSnapshot } from "./use-debounced-editor-snapshot";
 import { tornado } from "@/lib/model/sensitivity";
 import { buildTree } from "@/lib/model/tree";
 import { formatCurrency } from "@/lib/format";
 import { PETROL_600 } from "@/lib/chart-palette";
-import type { CostNodeRow } from "@/lib/model/types";
+import type { Currency } from "@/components/number/currency-select";
 
-export function TornadoChart({ nodes }: { nodes: CostNodeRow[] }) {
+export function TornadoChart({ currency = "USD" }: { currency?: Currency }) {
   const [pct, setPct] = useState(10);
-  const bars = tornado(buildTree(nodes), pct).slice(0, 8);
+  const { nodes } = useDebouncedEditorSnapshot();
+  const bars = useMemo(() => tornado(buildTree(nodes), pct).slice(0, 8), [nodes, pct]);
   const data = bars.map((b) => ({ name: b.name, swing: b.swing / 100 }));
 
   return (
@@ -42,7 +44,7 @@ export function TornadoChart({ nodes }: { nodes: CostNodeRow[] }) {
         {bars.map((b) => (
           <li key={b.nodeId} className="flex justify-between">
             <span>{b.name}</span>
-            <span className="num text-muted-foreground">± {formatCurrency(b.swing, "USD")}</span>
+            <span className="num text-muted-foreground">± {formatCurrency(b.swing, currency)}</span>
           </li>
         ))}
       </ul>
