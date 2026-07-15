@@ -32,6 +32,8 @@ export interface BuildModelXlsxInput {
   nodes: CostNodeRow[];
   /** Pre-computed via `rollupLive(buildTree(nodes))` — never recomputed here. */
   rollup: Rollup;
+  /** Optional rendered chart PNGs to embed below the breakdown. */
+  chartImages?: { donut?: Buffer; tornado?: Buffer };
 }
 
 // Worksheet column layout (1-based).
@@ -186,6 +188,25 @@ export function buildModelXlsx(input: BuildModelXlsxInput): Workbook {
   ws.getColumn(COL.name).width = 32;
   ws.getColumn(COL.formulaText).width = 24;
   ws.views = [{ state: "frozen", ySplit: HEADER_ROWS }];
+
+  // Embed rendered charts below the breakdown (formulas above are untouched).
+  const lastRow = HEADER_ROWS + rows.length + 1;
+  const placeImage = (buf: Buffer, anchorRow: number, label: string) => {
+    ws.getCell(anchorRow, 1).value = label;
+    const imageId = wb.addImage({ base64: buf.toString("base64"), extension: "png" });
+    ws.addImage(imageId, {
+      tl: { col: 0, row: anchorRow + 1 },
+      ext: { width: 480, height: 240 },
+    });
+  };
+  let cursor = lastRow + 1;
+  if (input.chartImages?.donut) {
+    placeImage(input.chartImages.donut, cursor, "Cost composition");
+    cursor += 14;
+  }
+  if (input.chartImages?.tornado) {
+    placeImage(input.chartImages.tornado, cursor, "Driver sensitivity");
+  }
 
   return wb;
 }

@@ -13,6 +13,9 @@ import { waterfallData } from "@/lib/model/waterfall";
 import { evaluateInsights } from "@/lib/model/insights";
 import { buildModelXlsx } from "@/lib/export/xlsx-model";
 import { buildComparisonXlsx } from "@/lib/export/xlsx-comparison";
+import { tornado } from "@/lib/model/sensitivity";
+import { renderDonutSvg, renderTornadoSvg } from "@/lib/export/chart-svg";
+import { svgToPng } from "@/lib/export/rasterize";
 import type { Currency } from "@/components/number/currency-select";
 
 export const runtime = "nodejs";
@@ -76,6 +79,32 @@ export async function GET(
   const currency = model.currency as Currency;
   const rollup = rollupLive(buildTree(nodes));
 
+  // Render the on-screen charts to PNG for embedding. Failures fall back to a
+  // formulas-only workbook (still fully functional) — export must never 500.
+  // Slices are computed inline (mirroring donutData's fold) rather than imported
+  // from the "use client" chart module, to keep this server route off the client
+  // boundary.
+  let chartImages: { donut?: Buffer; tornado?: Buffer } = {};
+  try {
+    const tree = buildTree(nodes);
+    const allRoots = tree.roots
+      .map((n) => ({ name: n.name, value: rollup.byNodeId[n.id] ?? 0 }))
+      .filter((d) => d.value > 0)
+      .sort((a, b) => b.value - a.value);
+    const donutSlices =
+      allRoots.length <= 6
+        ? allRoots
+        : [
+            ...allRoots.slice(0, 6),
+            { name: "Other", value: allRoots.slice(6).reduce((s, d) => s + d.value, 0) },
+          ];
+    const donutSvg = renderDonutSvg(donutSlices, currency);
+    const tornadoSvg = renderTornadoSvg(tornado(tree).slice(0, 8), rollup.total, currency);
+    chartImages = { donut: await svgToPng(donutSvg), tornado: await svgToPng(tornadoSvg) };
+  } catch (err) {
+    console.warn("export: chart-image render skipped", err);
+  }
+
   let wb: ReturnType<typeof buildModelXlsx>;
   let suffix = "";
   if (quoteId) {
@@ -94,7 +123,7 @@ export async function GET(
     });
     suffix = "-comparison";
   } else {
-    wb = buildModelXlsx({ modelName: model.name, currency, nodes, rollup });
+    wb = buildModelXlsx({ modelName: model.name, currency, nodes, rollup, chartImages });
   }
 
   const buffer = await wb.xlsx.writeBuffer();
