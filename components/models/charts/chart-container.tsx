@@ -9,10 +9,12 @@ export function ChartContainer({
   title,
   data,
   children,
+  emptyMessage = "No data yet.",
 }: {
   title: string;
   data: Record<string, unknown>[];
   children?: React.ReactNode;
+  emptyMessage?: string;
 }) {
   function copyCsv() {
     if (!data.length) return;
@@ -30,7 +32,7 @@ export function ChartContainer({
         </Button>
       </div>
       {data.length === 0 ? (
-        <p className="py-8 text-center text-xs text-muted-foreground">No data yet.</p>
+        <p className="py-8 text-center text-xs text-muted-foreground">{emptyMessage}</p>
       ) : (
         children
       )}

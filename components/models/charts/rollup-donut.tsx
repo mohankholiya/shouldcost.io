@@ -12,12 +12,18 @@ import type { Currency } from "@/components/number/currency-select";
 
 export type Slice = { name: string; value: number };
 
-/** Composition by top-level node (group or line), minor units, positive only. */
-export function donutData(nodes: CostNodeRow[], rollup: Rollup): Slice[] {
+/** Composition by top-level node (group or line), minor units, positive only.
+ *  Folds roots beyond `max` into a single "Other" slice. */
+export function donutData(nodes: CostNodeRow[], rollup: Rollup, max = 6): Slice[] {
   const tree = buildTree(nodes);
-  return tree.roots
+  const all = tree.roots
     .map((n) => ({ name: n.name, value: rollup.byNodeId[n.id] ?? 0 }))
-    .filter((d) => d.value > 0);
+    .filter((d) => d.value > 0)
+    .sort((a, b) => b.value - a.value);
+  if (all.length <= max) return all;
+  const head = all.slice(0, max);
+  const other = all.slice(max).reduce((s, d) => s + d.value, 0);
+  return [...head, { name: "Other", value: other }];
 }
 
 export function RollupDonut({ currency = "USD" }: { currency?: Currency }) {

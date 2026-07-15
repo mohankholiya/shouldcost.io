@@ -56,6 +56,34 @@ describe("donutData", () => {
     expect(data.map((d) => d.name)).toEqual(["Material", "Conversion"]);
     expect(data.find((d) => d.name === "Material")!.value).toBe(10000);
   });
+
+  it("folds roots beyond the cap into Other", () => {
+    const roots = Array.from({ length: 9 }, (_, i) => ({
+      id: `r${i}`,
+      model_id: "m",
+      parent_id: null,
+      sort_order: i,
+      name: `G${i}`,
+      node_type: "group" as const,
+      driver_name: null,
+      quantity: null,
+      unit: null,
+      rate: null,
+      rate_source: "manual" as const,
+      index_id: null,
+      index_factor: null,
+      formula: null,
+      notes: null,
+    }));
+    const rollup = {
+      total: 90,
+      byNodeId: Object.fromEntries(roots.map((n): [string, number] => [n.id, 10])),
+    };
+    const slices = donutData(roots, rollup, 6);
+    expect(slices).toHaveLength(7); // 6 named + Other
+    expect(slices.at(-1)!.name).toBe("Other");
+    expect(slices.at(-1)!.value).toBe(30); // 3 folded roots × 10
+  });
 });
 
 describe("sparklineStats", () => {
