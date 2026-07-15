@@ -1,12 +1,14 @@
 "use client";
 
 import { useMemo } from "react";
-import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import { useTheme } from "next-themes";
 import { ChartContainer } from "./chart-container";
 import { useDebouncedEditorSnapshot } from "./use-debounced-editor-snapshot";
+import { useChartColors } from "./use-chart-colors";
 import { buildTree } from "@/lib/model/tree";
 import { formatCurrency } from "@/lib/format";
-import { rampColor } from "@/lib/chart-palette";
+import { CHART_SURFACE } from "@/lib/chart-palette";
 import type { CostNodeRow, Rollup } from "@/lib/model/types";
 import type { Currency } from "@/components/number/currency-select";
 
@@ -28,29 +30,52 @@ export function donutData(nodes: CostNodeRow[], rollup: Rollup, max = 6): Slice[
 
 export function RollupDonut({ currency = "USD" }: { currency?: Currency }) {
   const { nodes, rollup } = useDebouncedEditorSnapshot();
+  const { categorical } = useChartColors();
+  const { resolvedTheme } = useTheme();
+  const surface = resolvedTheme === "dark" ? CHART_SURFACE.dark : CHART_SURFACE.light;
   const data = useMemo(() => donutData(nodes, rollup), [nodes, rollup]);
   const total = rollup.total || 1;
+  const color = (i: number) => categorical[i % categorical.length];
+
   return (
-    <ChartContainer title="Cost composition" data={data}>
+    <ChartContainer
+      title="Cost composition"
+      data={data}
+      emptyMessage="Add rate-carrying line items (or fill in rates) to see cost composition."
+    >
       <div className="flex items-center gap-4">
-        <div className="h-40 w-40 shrink-0">
+        <div
+          className="h-40 w-40 shrink-0"
+          role="img"
+          aria-label={`Cost composition donut chart, total ${formatCurrency(rollup.total, currency)}`}
+        >
           <ResponsiveContainer>
             <PieChart>
-              <Pie data={data} dataKey="value" nameKey="name" innerRadius={40} outerRadius={70}>
+              <Pie
+                data={data}
+                dataKey="value"
+                nameKey="name"
+                innerRadius={40}
+                outerRadius={70}
+                paddingAngle={2}
+                stroke={surface}
+                strokeWidth={2}
+              >
                 {data.map((_, i) => (
-                  <Cell key={i} fill={rampColor(i)} />
+                  <Cell key={i} fill={color(i)} />
                 ))}
               </Pie>
+              <Tooltip
+                formatter={(value, name) => [formatCurrency(Number(value), currency), String(name)]}
+                contentStyle={{ borderRadius: 6, border: "1px solid #e1e0d9", fontSize: 12 }}
+              />
             </PieChart>
           </ResponsiveContainer>
         </div>
         <ul className="space-y-1 text-xs">
           {data.map((d, i) => (
             <li key={d.name} className="flex items-center gap-2">
-              <span
-                className="h-2 w-2 rounded-sm"
-                style={{ background: rampColor(i) }}
-              />
+              <span className="h-2 w-2 rounded-sm" style={{ background: color(i) }} />
               <span>{d.name}</span>
               <span className="num text-muted-foreground">
                 {formatCurrency(d.value, currency)} · {Math.round((d.value / total) * 100)}%
