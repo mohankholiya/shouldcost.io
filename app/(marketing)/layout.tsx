@@ -1,11 +1,14 @@
 import { MarketingNav } from "@/components/layout/marketing-nav";
 import { Footer } from "@/components/layout/footer";
+import { fontDisplay } from "@/lib/fonts";
 
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className={`${fontDisplay.variable} flex min-h-dvh flex-col`}>
       <MarketingNav />
-      <div className="flex-1">{children}</div>
+      <main id="main" className="flex-1">
+        {children}
+      </main>
       <Footer />
     </div>
   );

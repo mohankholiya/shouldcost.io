@@ -58,7 +58,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       />
       <div className="flex flex-1 flex-col">
         <Topbar orgName={orgName} />
-        <main className="flex-1 p-6">{children}</main>
+        <main id="main" className="flex-1 p-6">{children}</main>
       </div>
     </div>
   );

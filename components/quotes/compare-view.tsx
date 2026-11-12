@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
+import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/shared/page-header";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -11,7 +13,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { QuoteList } from "@/components/quotes/quote-list";
 import { QuoteForm } from "@/components/quotes/quote-form";
 import { ComparisonMatrix } from "@/components/quotes/comparison-matrix";
-import { GapWaterfall } from "@/components/quotes/gap-waterfall";
 import { InsightCards } from "@/components/quotes/insight-cards";
 import { ExplainGapPanel } from "@/components/ai/explain-gap-panel";
 import { ExportMenu } from "@/components/export/export-menu";
@@ -22,6 +23,12 @@ import type { CostNodeRow } from "@/lib/model/types";
 import type { QuoteWithLines } from "@/lib/db/quotes";
 import type { Currency } from "@/components/number/currency-select";
 import type { Plan } from "@/lib/entitlements";
+
+// Recharts only loads when the waterfall tab is actually shown.
+const GapWaterfall = dynamic(
+  () => import("@/components/quotes/gap-waterfall").then((m) => m.GapWaterfall),
+  { ssr: false, loading: () => <Skeleton className="h-[300px] w-full rounded-lg" /> },
+);
 
 export function CompareView({
   modelId,

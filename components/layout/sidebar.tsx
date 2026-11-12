@@ -13,6 +13,7 @@ import {
   Clapperboard,
 } from "lucide-react";
 import { PlanBadge, ModelQuotaIndicator } from "@/components/billing";
+import { Wordmark } from "@/components/layout/wordmark";
 import { TRIAL_DAYS, type Plan } from "@/lib/entitlements";
 
 const NAV = [
@@ -41,9 +42,9 @@ export function Sidebar({
   const path = usePathname();
   return (
     <aside className="hidden w-56 shrink-0 flex-col border-r border-hairline bg-canvas md:flex">
-      <div className="px-4 py-4 text-sm font-semibold tracking-tight">
-        shouldcost<span className="text-primary">.io</span>
-      </div>
+      <Link href="/dashboard" className="px-4 py-4 text-sm" aria-label="Dashboard">
+        <Wordmark />
+      </Link>
       <nav className="space-y-1 p-3">
         {NAV.map((n) => {
           const active = path.startsWith(n.href);

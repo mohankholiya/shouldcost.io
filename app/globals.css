@@ -101,6 +101,7 @@
 
   --font-sans: var(--font-sans-next), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-mono-next), ui-monospace, monospace;
+  --font-display: var(--font-display-next), "Iowan Old Style", Georgia, serif;
 }
 
 /* ---------------------------------------------------------------------------
@@ -133,9 +134,29 @@
     font-family: var(--font-sans);
     color: var(--color-foreground);
     background: var(--color-background);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
   }
   body {
     margin: 0;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--color-primary) 22%, transparent);
   }
   :focus-visible {
     outline: 2px solid var(--color-ring);

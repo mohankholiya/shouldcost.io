@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { ChartContainer } from "@/components/models/charts/chart-container";
 import { donutData } from "@/components/models/charts/rollup-donut";
-import { sparklineStats } from "@/components/models/charts/index-sparkline";
+import { sparklineStats, sparklinePath } from "@/components/models/charts/index-sparkline";
 import { buildTree } from "@/lib/model/tree";
 import { rollupLive } from "@/lib/model/rollup-live";
 import type { CostNodeRow } from "@/lib/model/types";
@@ -94,5 +94,27 @@ describe("sparklineStats", () => {
     ]);
     expect(s.last).toBe(150);
     expect(s.deltaPct).toBeCloseTo(50, 5);
+  });
+});
+
+describe("sparklinePath", () => {
+  it("spans the box, highest value at the top, inset by the stroke pad", () => {
+    const d = sparklinePath(
+      [
+        { date: "a", value: 10 },
+        { date: "b", value: 20 },
+        { date: "c", value: 15 },
+      ],
+      100,
+      40,
+      0,
+    );
+    expect(d).toBe("M0.00,40.00 L50.00,0.00 L100.00,20.00");
+  });
+  it("draws a flat line for a constant series and nothing for an empty one", () => {
+    expect(sparklinePath([{ date: "a", value: 5 }, { date: "b", value: 5 }], 10, 10, 0)).toBe(
+      "M0.00,10.00 L10.00,10.00",
+    );
+    expect(sparklinePath([], 10, 10)).toBe("");
   });
 });
