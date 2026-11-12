@@ -20,7 +20,11 @@ export default async function ProjectDetail({ params }: { params: Promise<{ id: 
   const org = await getCurrentOrg();
   const isDemo = Boolean(org?.organizations?.is_demo);
   const sub = org ? await findActiveSubscriptionByOrg(org.org_id) : null;
-  const plan: Plan = resolveEffectivePlan({ subscription: toSnapshot(sub), isDemo });
+  const plan: Plan = resolveEffectivePlan({
+    subscription: toSnapshot(sub),
+    isDemo,
+    trialStartedAt: org?.organizations?.created_at,
+  });
   const supabase = await createServerClient();
   const { data: project } = await supabase
     .from("projects")

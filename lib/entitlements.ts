@@ -117,19 +117,42 @@ export function resolvePlan(input: {
   return sub.plan;
 }
 
+/** Length of the full-feature trial every new workspace gets, counted from org creation. */
+export const TRIAL_DAYS = 7;
+
+/** When an org's trial ends, or null if there is no trial start date. */
+export function trialEndsAt(trialStartedAt: Date | string | null | undefined): Date | null {
+  if (!trialStartedAt) return null;
+  const start = new Date(trialStartedAt);
+  if (Number.isNaN(start.getTime())) return null;
+  return new Date(start.getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
+}
+
+/** Is the org still inside its free trial window? */
+export function isInTrial(
+  trialStartedAt: Date | string | null | undefined,
+  now: Date = new Date(),
+): boolean {
+  const end = trialEndsAt(trialStartedAt);
+  return end !== null && now.getTime() < end.getTime();
+}
+
 /**
  * The plan the app should actually enforce. Identical to `resolvePlan` except
- * that in {@link FREE_LAUNCH} mode a `free` (unsubscribed) org is elevated to
- * `pro` — demo orgs and any real paid subscription are unaffected. Every
- * app/route/action gate calls this instead of `resolvePlan`, so the free-launch
- * unlock is applied in exactly one place.
+ * that a `free` (unsubscribed) org is elevated to `team` while inside its
+ * {@link TRIAL_DAYS}-day trial (counted from `trialStartedAt`, the org's
+ * `created_at`), or to `pro` in {@link FREE_LAUNCH} mode. Demo orgs and any
+ * real paid subscription are unaffected. Every app/route/action gate calls
+ * this instead of `resolvePlan`, so the unlock is applied in exactly one place.
  */
 export function resolveEffectivePlan(input: {
   subscription: SubscriptionSnapshot | null;
   isDemo: boolean;
+  trialStartedAt?: Date | string | null;
   now?: Date;
 }): Plan {
   const plan = resolvePlan(input);
+  if (plan === "free" && isInTrial(input.trialStartedAt, input.now)) return "team";
   if (FREE_LAUNCH && plan === "free") return "pro";
   return plan;
 }

@@ -55,7 +55,11 @@ export async function GET(
   }
   const isDemo = Boolean(org.organizations.is_demo);
   const sub = await findActiveSubscriptionByOrg(org.org_id);
-  const plan = resolveEffectivePlan({ subscription: toSnapshot(sub), isDemo });
+  const plan = resolveEffectivePlan({
+    subscription: toSnapshot(sub),
+    isDemo,
+    trialStartedAt: org?.organizations?.created_at,
+  });
   try {
     assertCanExport(plan);
   } catch (err) {

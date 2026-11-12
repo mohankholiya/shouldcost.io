@@ -15,7 +15,11 @@ export default async function ComparePage({ params }: { params: Promise<{ id: st
   const org = await getCurrentOrg();
   const isDemo = Boolean(org?.organizations?.is_demo);
   const sub = org ? await findActiveSubscriptionByOrg(org.org_id) : null;
-  const plan: Plan = resolveEffectivePlan({ subscription: toSnapshot(sub), isDemo });
+  const plan: Plan = resolveEffectivePlan({
+    subscription: toSnapshot(sub),
+    isDemo,
+    trialStartedAt: org?.organizations?.created_at,
+  });
   const [nodes, quotes] = await Promise.all([loadNodes(id), loadQuotes(id)]);
   return (
     <CompareView

@@ -25,6 +25,7 @@ export async function POST(req: Request) {
   const plan = resolveEffectivePlan({
     subscription: toSnapshot(sub),
     isDemo: Boolean(org.organizations?.is_demo),
+    trialStartedAt: org.organizations?.created_at,
   });
   const credits = org.organizations?.ai_draft_credits ?? 0;
   const decision = decideAiDraftAccess(plan, credits);

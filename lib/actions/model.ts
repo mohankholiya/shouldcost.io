@@ -76,7 +76,11 @@ export async function instantiateModelAction(input: unknown): Promise<Instantiat
   if (!org?.organizations) throw new Error("No organization for the current user");
   const isDemo = Boolean(org.organizations.is_demo);
   const sub = await findActiveSubscriptionByOrg(org.org_id);
-  const plan = resolveEffectivePlan({ subscription: toSnapshot(sub), isDemo });
+  const plan = resolveEffectivePlan({
+    subscription: toSnapshot(sub),
+    isDemo,
+    trialStartedAt: org?.organizations?.created_at,
+  });
 
   if (templateSlug && !canUseTemplate(plan, templateSlug)) {
     return { error: "TEMPLATE_LOCKED", requiredPlan: "pro" };
@@ -104,7 +108,11 @@ export async function createModelFromDraftAction(input: unknown): Promise<Instan
   if (!org?.organizations) throw new Error("No organization for the current user");
   const isDemo = Boolean(org.organizations.is_demo);
   const sub = await findActiveSubscriptionByOrg(org.org_id);
-  const plan = resolveEffectivePlan({ subscription: toSnapshot(sub), isDemo });
+  const plan = resolveEffectivePlan({
+    subscription: toSnapshot(sub),
+    isDemo,
+    trialStartedAt: org?.organizations?.created_at,
+  });
   const count = await countModelsByOrg(org.org_id);
   if (!canCreateModel(plan, count)) {
     return { error: "MODELS_EXCEEDED", requiredPlan: "pro" };

@@ -4,7 +4,14 @@ import { createServerClient } from "@/lib/supabase/server";
 export type CurrentOrg = {
   org_id: string;
   role: string;
-  organizations: { id: string; name: string; plan: string; is_demo: boolean; ai_draft_credits: number } | null;
+  organizations: {
+    id: string;
+    name: string;
+    plan: string;
+    is_demo: boolean;
+    ai_draft_credits: number;
+    created_at?: string | null;
+  } | null;
 };
 
 /** The calling user's org membership (personal org, auto-created on signup). */
@@ -16,7 +23,7 @@ export async function getCurrentOrg(): Promise<CurrentOrg | null> {
   if (!user) return null;
   const { data } = await supabase
     .from("org_members")
-    .select("org_id, role, organizations(id, name, plan, is_demo, ai_draft_credits)")
+    .select("org_id, role, organizations(id, name, plan, is_demo, ai_draft_credits, created_at)")
     .eq("user_id", user.id)
     .maybeSingle();
   return (data as CurrentOrg | null) ?? null;

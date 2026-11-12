@@ -12,6 +12,9 @@ import {
   resolvePlan,
   resolveEffectivePlan,
   EntitlementError,
+  TRIAL_DAYS,
+  isInTrial,
+  trialEndsAt,
 } from "@/lib/entitlements";
 
 describe("ENTITLEMENTS matrix", () => {
@@ -143,6 +146,50 @@ describe("EntitlementError", () => {
     expect(err.code).toBe("MODELS_EXCEEDED");
     expect(err.requiredPlan).toBe("pro");
     expect(err.message).toContain("model cap");
+  });
+});
+
+describe("7-day free trial", () => {
+  const created = new Date("2026-11-12T10:00:00Z");
+  const day = 24 * 60 * 60 * 1000;
+
+  it("lasts 7 days from org creation", () => {
+    expect(TRIAL_DAYS).toBe(7);
+    expect(trialEndsAt(created)?.toISOString()).toBe("2026-11-19T10:00:00.000Z");
+    expect(trialEndsAt("2026-11-12T10:00:00Z")?.toISOString()).toBe("2026-11-19T10:00:00.000Z");
+  });
+
+  it("has no trial without a valid start date", () => {
+    expect(trialEndsAt(null)).toBeNull();
+    expect(trialEndsAt(undefined)).toBeNull();
+    expect(trialEndsAt("not a date")).toBeNull();
+    expect(isInTrial(null)).toBe(false);
+  });
+
+  it("is active until the end instant, then expires", () => {
+    expect(isInTrial(created, new Date(created.getTime() + 6 * day))).toBe(true);
+    expect(isInTrial(created, new Date(created.getTime() + 7 * day - 1))).toBe(true);
+    expect(isInTrial(created, new Date(created.getTime() + 7 * day))).toBe(false);
+  });
+
+  it("elevates an unsubscribed org to team during the trial", () => {
+    const now = new Date(created.getTime() + 3 * day);
+    const plan = resolveEffectivePlan({ subscription: null, isDemo: false, trialStartedAt: created, now });
+    expect(plan).toBe("team");
+    expect(canUseFeature(plan, "export")).toBe(true);
+    expect(canCreateModel(plan, 50)).toBe(true);
+    expect(canDraftWithAi(plan, 0)).toBe(true);
+  });
+
+  it("drops back to free after the trial", () => {
+    const now = new Date(created.getTime() + 8 * day);
+    expect(resolveEffectivePlan({ subscription: null, isDemo: false, trialStartedAt: created, now })).toBe("free");
+  });
+
+  it("does not change a real paid subscription", () => {
+    const now = new Date(created.getTime() + 1 * day);
+    const sub = { plan: "pro" as const, status: "active", currentPeriodEnd: new Date(created.getTime() + 30 * day) };
+    expect(resolveEffectivePlan({ subscription: sub, isDemo: false, trialStartedAt: created, now })).toBe("pro");
   });
 });
 

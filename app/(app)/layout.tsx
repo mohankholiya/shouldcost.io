@@ -29,7 +29,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   // gate, and the model-cap check. `toSnapshot` adapts the snake_case DB row
   // so resolvePlan's currentPeriodEnd expiry check actually fires.
   const sub = await findActiveSubscriptionByOrg(org.org_id);
-  const plan = resolveEffectivePlan({ subscription: toSnapshot(sub), isDemo });
+  const plan = resolveEffectivePlan({
+    subscription: toSnapshot(sub),
+    isDemo,
+    trialStartedAt: org?.organizations?.created_at,
+  });
   const modelCount = await countModelsByOrg(org.org_id);
 
   // Five most recent models (RLS-scoped to this org) feed the sidebar shortcut.

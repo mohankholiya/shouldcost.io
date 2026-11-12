@@ -15,7 +15,11 @@ export default async function ModelPage({ params }: { params: Promise<{ id: stri
   const org = await getCurrentOrg();
   const isDemo = Boolean(org?.organizations?.is_demo);
   const sub = org ? await findActiveSubscriptionByOrg(org.org_id) : null;
-  const plan: Plan = resolveEffectivePlan({ subscription: toSnapshot(sub), isDemo });
+  const plan: Plan = resolveEffectivePlan({
+    subscription: toSnapshot(sub),
+    isDemo,
+    trialStartedAt: org?.organizations?.created_at,
+  });
   const [nodes, indices, versions] = await Promise.all([
     loadNodes(id),
     loadIndicesWithLatest(),
