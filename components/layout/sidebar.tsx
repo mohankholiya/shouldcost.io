@@ -31,6 +31,7 @@ export function Sidebar({
   modelCount = 0,
   trialDaysLeft = null,
   trialExpired = false,
+  freeLaunch = false,
 }: {
   recentModels?: RecentModel[];
   plan: Plan;
@@ -38,6 +39,7 @@ export function Sidebar({
   /** Days left on the 7-day full-feature trial, or null when not on one. */
   trialDaysLeft?: number | null;
   trialExpired?: boolean;
+  freeLaunch?: boolean;
 }) {
   const path = usePathname();
   return (
@@ -124,7 +126,7 @@ export function Sidebar({
           <span className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
             Plan
           </span>
-          <PlanBadge plan={plan} trial={trialDaysLeft !== null} />
+          <PlanBadge plan={plan} trial={trialDaysLeft !== null} freeLaunch={freeLaunch} />
         </div>
         {trialDaysLeft !== null && (
           <TrialMeter daysLeft={trialDaysLeft} />

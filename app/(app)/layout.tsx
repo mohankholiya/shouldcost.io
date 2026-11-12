@@ -3,7 +3,7 @@ import { getCurrentOrg } from "@/lib/db/orgs";
 import { createServerClient } from "@/lib/supabase/server";
 import { findActiveSubscriptionByOrg, toSnapshot } from "@/lib/db/subscriptions";
 import { countModelsByOrg } from "@/lib/db/models";
-import { resolveEffectivePlan, trialStatus } from "@/lib/entitlements";
+import { FREE_LAUNCH, resolvePlan, resolveEffectivePlan, trialStatus } from "@/lib/entitlements";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { CommandPalette } from "@/components/command/command-palette";
@@ -44,6 +44,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const plan = resolveEffectivePlan(planInput);
   const trial = trialStatus(planInput);
   const trialDaysLeft = trial.state === "active" ? trial.daysLeft : null;
+  const freeLaunch = FREE_LAUNCH && resolvePlan(planInput) === "free";
   const recentModels = (data ?? []) as { id: string; name: string }[];
 
   return (
@@ -55,6 +56,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         modelCount={modelCount}
         trialDaysLeft={trialDaysLeft}
         trialExpired={trial.state === "expired" && plan === "free"}
+        freeLaunch={freeLaunch}
       />
       <div className="flex flex-1 flex-col">
         <Topbar orgName={orgName} />

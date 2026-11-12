@@ -56,15 +56,15 @@ export const ENTITLEMENTS: Record<Plan, Entitlement> = {
 };
 
 /**
- * Free-launch mode toggle. `false` (current) means billing is live:
- * unsubscribed orgs stay on `free` and hit the entitlement gates, and the
- * Stripe billing surfaces / upgrade UI are shown. Set back to `true` only to
- * re-open the free beta — that elevates every unsubscribed org to the full
- * `pro` feature set via `resolveEffectivePlan` and hides billing. The
- * `ENTITLEMENTS` catalog and the pure `resolvePlan` resolver are unchanged
- * either way, so flipping is a one-line change.
+ * Free-launch mode toggle. `true` (current) means the whole product is free:
+ * every unsubscribed org is elevated to the top `team` tier via
+ * `resolveEffectivePlan` — unlimited models, all templates, unlimited AI
+ * drafts, export, every feature — so no entitlement gate fires, and the paid
+ * plans / upgrade UI are hidden. Set to `false` to turn billing back on:
+ * unsubscribed orgs then get the {@link TRIAL_DAYS}-day trial and drop to
+ * `free` afterwards. The `ENTITLEMENTS` catalog is unchanged either way.
  */
-export const FREE_LAUNCH = false;
+export const FREE_LAUNCH = true;
 
 export function getEntitlement(plan: Plan): Entitlement {
   return ENTITLEMENTS[plan];
@@ -153,7 +153,8 @@ export function trialStatus(input: {
   trialStartedAt?: Date | string | null;
   now?: Date;
 }): TrialStatus {
-  if (resolvePlan(input) !== "free") return { state: "none" };
+  // In free-launch mode everything is already free, so there is no trial to count down.
+  if (FREE_LAUNCH || resolvePlan(input) !== "free") return { state: "none" };
   const endsAt = trialEndsAt(input.trialStartedAt);
   if (!endsAt) return { state: "none" };
   const now = input.now ?? new Date();
@@ -166,7 +167,7 @@ export function trialStatus(input: {
  * The plan the app should actually enforce. Identical to `resolvePlan` except
  * that a `free` (unsubscribed) org is elevated to `team` while inside its
  * {@link TRIAL_DAYS}-day trial (counted from `trialStartedAt`, the org's
- * `created_at`), or to `pro` in {@link FREE_LAUNCH} mode. Demo orgs and any
+ * `created_at`), and always in {@link FREE_LAUNCH} mode. Demo orgs and any
  * real paid subscription are unaffected. Every app/route/action gate calls
  * this instead of `resolvePlan`, so the unlock is applied in exactly one place.
  */
@@ -177,8 +178,8 @@ export function resolveEffectivePlan(input: {
   now?: Date;
 }): Plan {
   const plan = resolvePlan(input);
-  if (plan === "free" && isInTrial(input.trialStartedAt, input.now)) return "team";
-  if (FREE_LAUNCH && plan === "free") return "pro";
+  if (plan !== "free") return plan;
+  if (FREE_LAUNCH || isInTrial(input.trialStartedAt, input.now)) return "team";
   return plan;
 }
 

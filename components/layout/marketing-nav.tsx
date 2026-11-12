@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Wordmark } from "@/components/layout/wordmark";
+import { FREE_LAUNCH } from "@/lib/entitlements";
 
 const LINKS = [
   { href: "/#how-it-works", label: "How it works" },
@@ -27,7 +28,7 @@ export function MarketingNav() {
             <Link href="/login">Sign in</Link>
           </Button>
           <Button size="sm" asChild>
-            <Link href="/signup">Start free trial</Link>
+            <Link href="/signup">{FREE_LAUNCH ? "Start free" : "Start free trial"}</Link>
           </Button>
         </div>
       </div>

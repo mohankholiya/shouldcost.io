@@ -6,7 +6,7 @@ import { PlanBadge } from "@/components/billing";
 import { ManageSubscriptionButton } from "./manage-button";
 import { getCurrentOrg } from "@/lib/db/orgs";
 import { findActiveSubscriptionByOrg, toSnapshot } from "@/lib/db/subscriptions";
-import { FREE_LAUNCH, resolveEffectivePlan, getEntitlement, trialStatus } from "@/lib/entitlements";
+import { FREE_LAUNCH, resolvePlan, resolveEffectivePlan, getEntitlement, trialStatus } from "@/lib/entitlements";
 
 export default async function BillingPage() {
   const org = await getCurrentOrg();
@@ -22,6 +22,7 @@ export default async function BillingPage() {
   // A trial only ever elevates an unsubscribed org, so it is billed nothing.
   const trial = trialStatus(planInput);
   const onTrial = trial.state === "active";
+  const freeLaunch = FREE_LAUNCH && resolvePlan(planInput) === "free";
   const fmtDate = (d: Date) =>
     d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
   // In free-launch mode nobody is billed, so the price is always Free even for
@@ -35,7 +36,7 @@ export default async function BillingPage() {
       <Surface padding="lg" className="max-w-md space-y-4 text-sm">
         <div className="flex items-center justify-between">
           <span className="text-muted-foreground">Current plan</span>
-          <PlanBadge plan={plan} trial={onTrial} />
+          <PlanBadge plan={plan} trial={onTrial} freeLaunch={freeLaunch} />
         </div>
         <div className="flex items-center justify-between">
           <span className="text-muted-foreground">Price</span>
@@ -61,8 +62,8 @@ export default async function BillingPage() {
         )}
         {FREE_LAUNCH ? (
           <p className="text-xs text-muted-foreground">
-            You&rsquo;re on the free beta — every feature is unlocked and no card is
-            required. Paid plans arrive later.
+            shouldcost.io is free for everyone right now — unlimited models, all templates,
+            unlimited AI drafts, Excel export and every other feature. No card required.
           </p>
         ) : (
           <div className="flex gap-2 pt-2">

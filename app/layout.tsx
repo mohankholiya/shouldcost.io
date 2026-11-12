@@ -6,7 +6,7 @@ import { ThemeProvider } from "@/components/theme/theme-provider";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://shouldcost-io.vercel.app";
 const DESCRIPTION =
-  "Rebuild any bought part or service from its cost drivers, link them to live commodity indices, and benchmark supplier quotes line by line. 7-day free trial.";
+  "Rebuild any bought part or service from its cost drivers, link them to live commodity indices, and benchmark supplier quotes line by line. Free during launch.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

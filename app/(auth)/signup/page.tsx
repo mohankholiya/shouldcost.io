@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { TRIAL_DAYS } from "@/lib/entitlements";
+import { FREE_LAUNCH, TRIAL_DAYS } from "@/lib/entitlements";
 import { MagicLinkForm } from "@/components/auth/magic-link-form";
 import { GoogleButton } from "@/components/auth/google-button";
 
@@ -9,7 +9,9 @@ export default function SignupPage() {
       <div className="space-y-1">
         <h1 className="text-xl font-semibold tracking-tight">Create your workspace</h1>
         <p className="text-sm text-muted-foreground">
-          Every feature free for {TRIAL_DAYS} days. No card required.
+          {FREE_LAUNCH
+            ? "Free during launch — every feature unlocked. No card required."
+            : `Every feature free for ${TRIAL_DAYS} days. No card required.`}
         </p>
       </div>
       <GoogleButton />

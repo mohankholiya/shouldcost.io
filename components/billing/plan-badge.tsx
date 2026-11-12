@@ -8,7 +8,18 @@ const TONE: Record<Plan, string> = {
   team: "bg-primary text-primary-foreground",
 };
 
-export function PlanBadge({ plan, trial = false }: { plan: Plan; trial?: boolean }) {
-  const label = plan.charAt(0).toUpperCase() + plan.slice(1) + (trial ? " trial" : "");
+export function PlanBadge({
+  plan,
+  trial = false,
+  freeLaunch = false,
+}: {
+  plan: Plan;
+  trial?: boolean;
+  /** Free-launch mode: the org is elevated to every feature but billed nothing. */
+  freeLaunch?: boolean;
+}) {
+  const label = freeLaunch
+    ? "Free · all features"
+    : plan.charAt(0).toUpperCase() + plan.slice(1) + (trial ? " trial" : "");
   return <Badge className={cn(TONE[plan])}>{label}</Badge>;
 }

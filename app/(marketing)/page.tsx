@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ENTITLEMENTS, TRIAL_DAYS, type Plan } from "@/lib/entitlements";
+import { ENTITLEMENTS, FREE_LAUNCH, TRIAL_DAYS, type Plan } from "@/lib/entitlements";
 import { ALL_TEMPLATES } from "@/lib/seed/templates";
 import { INDICES } from "@/lib/seed/indices";
 
@@ -21,6 +21,29 @@ const EXHIBIT = [
 const SHOULD_COST = EXHIBIT.reduce((s, r) => s + r.value, 0); // 1,836
 const QUOTE = 2115;
 const GAP = QUOTE - SHOULD_COST;
+
+/* Offer copy follows the billing mode: everything free during launch, or the
+   7-day trial once billing is on. Flipping FREE_LAUNCH updates the whole page. */
+const OFFER = FREE_LAUNCH
+  ? {
+      cta: "Start free",
+      note: "Free during launch · Every feature unlocked · No card required",
+      closing: "Build your first should-cost model in minutes — free, with every feature.",
+    }
+  : {
+      cta: `Start your ${TRIAL_DAYS}-day free trial`,
+      note: `Every feature unlocked for ${TRIAL_DAYS} days · No card required`,
+      closing: `Build your first should-cost model in minutes — free for ${TRIAL_DAYS} days.`,
+    };
+
+const FREE_INCLUDES = [
+  "Unlimited cost models",
+  `All ${ALL_TEMPLATES.length} category templates`,
+  "Unlimited AI drafts, suggestions and gap briefs",
+  "Excel export with live formulas",
+  "Quote comparison & gap waterfall",
+  "Version history & diff",
+];
 
 const usd = (n: number) => `$${n.toLocaleString("en-US")}`;
 
@@ -97,7 +120,7 @@ export default function MarketingHome() {
             <div className="mt-9 flex flex-wrap items-center gap-3">
               <Button size="lg" asChild className="group">
                 <Link href="/signup">
-                  Start your {TRIAL_DAYS}-day free trial
+                  {OFFER.cta}
                   <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
                 </Link>
               </Button>
@@ -108,7 +131,7 @@ export default function MarketingHome() {
               </Button>
             </div>
             <p className="mt-4 text-sm text-muted-foreground">
-              Every feature unlocked for {TRIAL_DAYS} days · No card required
+              {OFFER.note}
             </p>
           </div>
 
@@ -206,20 +229,7 @@ export default function MarketingHome() {
       {/* --------------------------------------------------------- Pricing */}
       <section id="pricing" className="scroll-mt-20">
         <div className="mx-auto max-w-6xl px-6 py-24">
-          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <h2 className="max-w-xl font-display text-4xl leading-tight font-medium tracking-[-0.01em]">
-              Start with everything. Decide in a week.
-            </h2>
-            <p className="max-w-sm text-muted-foreground">
-              Every new workspace gets the full Team plan free for {TRIAL_DAYS} days. No card. If you
-              don&rsquo;t upgrade, it moves to Free and your models stay put.
-            </p>
-          </div>
-          <div className="mt-12 grid gap-4 lg:grid-cols-3">
-            {(["free", "pro", "team"] as const).map((p) => (
-              <PriceCard key={p} plan={p} featured={p === "pro"} />
-            ))}
-          </div>
+          {FREE_LAUNCH ? <FreeLaunchOffer /> : <PaidPlans />}
         </div>
       </section>
 
@@ -231,12 +241,12 @@ export default function MarketingHome() {
               Bring a baseline to your next negotiation.
             </h2>
             <p className="mt-2 text-petrol-200">
-              Build your first should-cost model in minutes — free for {TRIAL_DAYS} days.
+              {OFFER.closing}
             </p>
           </div>
           <Button size="lg" asChild className="bg-white text-petrol-900 hover:bg-petrol-50">
             <Link href="/signup">
-              Start free trial <ArrowRight />
+              {FREE_LAUNCH ? "Start free" : "Start free trial"} <ArrowRight />
             </Link>
           </Button>
         </div>
@@ -402,5 +412,55 @@ function PriceCard({ plan, featured }: { plan: Plan; featured?: boolean }) {
         <Link href="/signup">{plan === "free" ? "Create a workspace" : `Start ${TRIAL_DAYS}-day trial`}</Link>
       </Button>
     </div>
+  );
+}
+
+function FreeLaunchOffer() {
+  return (
+    <div className="grid items-center gap-10 rounded-2xl border border-hairline bg-card p-8 sm:p-12 lg:grid-cols-[1fr_1.1fr]">
+      <div>
+        <h2 className="font-display text-4xl leading-tight font-medium tracking-[-0.01em]">
+          Free while we launch. Every feature.
+        </h2>
+        <p className="mt-4 max-w-md text-muted-foreground">
+          No plans to compare and no limits to work around — the full product is open to everyone.
+          No card required.
+        </p>
+        <Button size="lg" className="mt-8" asChild>
+          <Link href="/signup">
+            Create your workspace <ArrowRight />
+          </Link>
+        </Button>
+      </div>
+      <ul className="grid gap-3 sm:grid-cols-2">
+        {FREE_INCLUDES.map((pt) => (
+          <li key={pt} className="flex gap-2.5 text-sm">
+            <Check className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
+            {pt}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function PaidPlans() {
+  return (
+    <>
+      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <h2 className="max-w-xl font-display text-4xl leading-tight font-medium tracking-[-0.01em]">
+          Start with everything. Decide in a week.
+        </h2>
+        <p className="max-w-sm text-muted-foreground">
+          Every new workspace gets the full Team plan free for {TRIAL_DAYS} days. No card. If you
+          don&rsquo;t upgrade, it moves to Free and your models stay put.
+        </p>
+      </div>
+      <div className="mt-12 grid gap-4 lg:grid-cols-3">
+        {(["free", "pro", "team"] as const).map((p) => (
+          <PriceCard key={p} plan={p} featured={p === "pro"} />
+        ))}
+      </div>
+    </>
   );
 }

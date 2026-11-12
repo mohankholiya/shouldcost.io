@@ -87,8 +87,8 @@ describe("AI draft entitlements", () => {
   it("paid plans can always draft regardless of counter", () => {
     expect(canDraftWithAi("pro", 0)).toBe(true);
   });
-  it("FREE_LAUNCH is off", () => {
-    expect(FREE_LAUNCH).toBe(false);
+  it("FREE_LAUNCH is on", () => {
+    expect(FREE_LAUNCH).toBe(true);
   });
 });
 
@@ -115,18 +115,29 @@ describe("resolvePlan", () => {
   });
 });
 
-describe("resolveEffectivePlan (billing live — free-launch off)", () => {
+describe("resolveEffectivePlan (everything free — free-launch on)", () => {
   const now = new Date("2026-07-05T00:00:00Z");
   const future = new Date("2026-08-05T00:00:00Z");
 
-  it("free-launch is off — billing is live", () => {
-    // Guards the other assertions in this block; flip back on if relaunching free.
-    expect(FREE_LAUNCH).toBe(false);
+  it("free-launch is on — nothing is billed or gated", () => {
+    // Guards the other assertions in this block; flip off to re-enable billing.
+    expect(FREE_LAUNCH).toBe(true);
   });
 
-  it("no longer elevates an unsubscribed org — it stays on free", () => {
+  it("elevates any unsubscribed org — new or old — to team, the top tier", () => {
+    const longAgo = new Date("2025-01-01T00:00:00Z");
     expect(resolvePlan({ subscription: null, isDemo: false, now })).toBe("free");
-    expect(resolveEffectivePlan({ subscription: null, isDemo: false, now })).toBe("free");
+    expect(resolveEffectivePlan({ subscription: null, isDemo: false, now })).toBe("team");
+    expect(resolveEffectivePlan({ subscription: null, isDemo: false, trialStartedAt: longAgo, now })).toBe("team");
+  });
+
+  it("every limit is lifted for an unsubscribed org", () => {
+    const plan = resolveEffectivePlan({ subscription: null, isDemo: false, now });
+    expect(canUseFeature(plan, "export")).toBe(true);
+    expect(canCreateModel(plan, 9999)).toBe(true);
+    expect(canUseTemplate(plan, "line-pipe")).toBe(true);
+    expect(aiDraftCreditsFor(plan)).toBeNull();
+    expect(canDraftWithAi(plan, 0)).toBe(true);
   });
 
   it("leaves demo orgs and real paid subscriptions unchanged", () => {
@@ -182,7 +193,7 @@ describe("7-day free trial", () => {
     expect(canDraftWithAi(plan, 0)).toBe(true);
   });
 
-  it("drops back to free after the trial", () => {
+  it.skipIf(FREE_LAUNCH)("drops back to free after the trial", () => {
     const now = new Date(created.getTime() + 8 * day);
     expect(resolveEffectivePlan({ subscription: null, isDemo: false, trialStartedAt: created, now })).toBe("free");
   });
@@ -199,7 +210,7 @@ describe("trialStatus", () => {
   const day = 24 * 60 * 60 * 1000;
   const base = { subscription: null, isDemo: false, trialStartedAt: created };
 
-  it("counts whole days left, rounding the last partial day up", () => {
+  it.skipIf(FREE_LAUNCH)("counts whole days left, rounding the last partial day up", () => {
     expect(trialStatus({ ...base, now: new Date(created.getTime() + 1000) })).toMatchObject({
       state: "active",
       daysLeft: 7,
@@ -210,7 +221,11 @@ describe("trialStatus", () => {
     });
   });
 
-  it("reports expiry once the window closes", () => {
+  it.runIf(FREE_LAUNCH)("shows no trial countdown while everything is free", () => {
+    expect(trialStatus({ ...base, now: new Date(created.getTime() + 1000) }).state).toBe("none");
+  });
+
+  it.skipIf(FREE_LAUNCH)("reports expiry once the window closes", () => {
     expect(trialStatus({ ...base, now: new Date(created.getTime() + 7 * day) }).state).toBe("expired");
   });
 
