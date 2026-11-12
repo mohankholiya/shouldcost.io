@@ -12,8 +12,8 @@ import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { saveNodesAction } from "@/lib/actions/model";
 import { IndicesProvider } from "@/components/models/indices-context";
 import { VersionBar } from "@/components/models/version-bar";
-import { RollupDonut } from "@/components/models/charts/rollup-donut";
-import { TornadoChart } from "@/components/models/charts/tornado-chart";
+import dynamic from "next/dynamic";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ExportMenu } from "@/components/export/export-menu";
 import { NodeAiAssist } from "@/components/ai/node-ai-assist";
 import type { CostNodeRow } from "@/lib/model/types";
@@ -22,6 +22,18 @@ import type { ModelHeader } from "@/lib/db/models";
 import type { IndexWithLatest } from "@/lib/db/indices";
 import type { ModelVersion } from "@/lib/db/versions";
 import type { Plan } from "@/lib/entitlements";
+
+// Recharts is the heaviest client dependency on this page and the charts sit
+// below the CBS grid, so they load in their own chunk after the editor is live.
+const ChartSkeleton = () => <Skeleton className="h-[300px] w-full rounded-lg" />;
+const RollupDonut = dynamic(
+  () => import("@/components/models/charts/rollup-donut").then((m) => m.RollupDonut),
+  { ssr: false, loading: ChartSkeleton },
+);
+const TornadoChart = dynamic(
+  () => import("@/components/models/charts/tornado-chart").then((m) => m.TornadoChart),
+  { ssr: false, loading: ChartSkeleton },
+);
 
 export function ModelEditor({
   model,

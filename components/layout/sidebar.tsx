@@ -13,7 +13,7 @@ import {
   Clapperboard,
 } from "lucide-react";
 import { PlanBadge, ModelQuotaIndicator } from "@/components/billing";
-import type { Plan } from "@/lib/entitlements";
+import { TRIAL_DAYS, type Plan } from "@/lib/entitlements";
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -28,10 +28,15 @@ export function Sidebar({
   recentModels = [],
   plan,
   modelCount = 0,
+  trialDaysLeft = null,
+  trialExpired = false,
 }: {
   recentModels?: RecentModel[];
   plan: Plan;
   modelCount?: number;
+  /** Days left on the 7-day full-feature trial, or null when not on one. */
+  trialDaysLeft?: number | null;
+  trialExpired?: boolean;
 }) {
   const path = usePathname();
   return (
@@ -118,10 +123,52 @@ export function Sidebar({
           <span className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
             Plan
           </span>
-          <PlanBadge plan={plan} />
+          <PlanBadge plan={plan} trial={trialDaysLeft !== null} />
         </div>
+        {trialDaysLeft !== null && (
+          <TrialMeter daysLeft={trialDaysLeft} />
+        )}
+        {trialExpired && (
+          <p className="px-1 pt-2 text-xs text-muted-foreground">
+            Trial ended.{" "}
+            <Link href="/settings/billing/upgrade" className="font-medium text-primary hover:underline">
+              Upgrade
+            </Link>
+          </p>
+        )}
         <ModelQuotaIndicator plan={plan} used={modelCount} />
       </div>
     </aside>
+  );
+}
+
+/** Remaining-trial bar: fills down as the 7 days run out. */
+function TrialMeter({ daysLeft }: { daysLeft: number }) {
+  const pct = Math.min(100, Math.max(0, (daysLeft / TRIAL_DAYS) * 100));
+  return (
+    <div className="px-1 pt-2.5">
+      <div className="flex items-baseline justify-between text-xs">
+        <span className="text-muted-foreground">
+          <span className="num font-medium text-foreground">{daysLeft}</span> day
+          {daysLeft === 1 ? "" : "s"} left
+        </span>
+        <Link href="/settings/billing/upgrade" className="font-medium text-primary hover:underline">
+          Upgrade
+        </Link>
+      </div>
+      <div
+        className="mt-1.5 h-1 overflow-hidden rounded-full bg-muted"
+        role="progressbar"
+        aria-label="Free trial remaining"
+        aria-valuemin={0}
+        aria-valuemax={TRIAL_DAYS}
+        aria-valuenow={daysLeft}
+      >
+        <div
+          className={cn("h-full rounded-full", daysLeft <= 2 ? "bg-amber" : "bg-primary")}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </div>
   );
 }

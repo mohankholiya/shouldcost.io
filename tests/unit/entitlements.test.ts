@@ -15,6 +15,7 @@ import {
   TRIAL_DAYS,
   isInTrial,
   trialEndsAt,
+  trialStatus,
 } from "@/lib/entitlements";
 
 describe("ENTITLEMENTS matrix", () => {
@@ -190,6 +191,35 @@ describe("7-day free trial", () => {
     const now = new Date(created.getTime() + 1 * day);
     const sub = { plan: "pro" as const, status: "active", currentPeriodEnd: new Date(created.getTime() + 30 * day) };
     expect(resolveEffectivePlan({ subscription: sub, isDemo: false, trialStartedAt: created, now })).toBe("pro");
+  });
+});
+
+describe("trialStatus", () => {
+  const created = new Date("2026-11-12T10:00:00Z");
+  const day = 24 * 60 * 60 * 1000;
+  const base = { subscription: null, isDemo: false, trialStartedAt: created };
+
+  it("counts whole days left, rounding the last partial day up", () => {
+    expect(trialStatus({ ...base, now: new Date(created.getTime() + 1000) })).toMatchObject({
+      state: "active",
+      daysLeft: 7,
+    });
+    expect(trialStatus({ ...base, now: new Date(created.getTime() + 7 * day - 1000) })).toMatchObject({
+      state: "active",
+      daysLeft: 1,
+    });
+  });
+
+  it("reports expiry once the window closes", () => {
+    expect(trialStatus({ ...base, now: new Date(created.getTime() + 7 * day) }).state).toBe("expired");
+  });
+
+  it("has no trial for demo orgs, paid orgs, or a missing start date", () => {
+    const now = new Date(created.getTime() + day);
+    expect(trialStatus({ ...base, isDemo: true, now }).state).toBe("none");
+    expect(trialStatus({ subscription: null, isDemo: false, trialStartedAt: null, now }).state).toBe("none");
+    const sub = { plan: "pro" as const, status: "active", currentPeriodEnd: new Date(created.getTime() + 30 * day) };
+    expect(trialStatus({ ...base, subscription: sub, now }).state).toBe("none");
   });
 });
 

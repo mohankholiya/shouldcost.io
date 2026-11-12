@@ -17,19 +17,20 @@ type ModelRow = {
 
 export default async function DashboardPage() {
   const supabase = await createServerClient();
-  const { data } = await supabase
-    .from("cost_models")
-    .select("id, name, status, model_versions(total_cost)")
-    .order("created_at", { ascending: false });
+  // Models and the quote count are independent reads — fetch them together.
+  // The quote count is head-only (no rows returned) and feeds the onboarding checklist.
+  const [{ data }, { count: quoteCount }] = await Promise.all([
+    supabase
+      .from("cost_models")
+      .select("id, name, status, model_versions(total_cost)")
+      .order("created_at", { ascending: false }),
+    supabase.from("quotes").select("id", { count: "exact", head: true }),
+  ]);
 
   const models = (data ?? []) as ModelRow[];
   const totalMinor = models.reduce((sum, m) => sum + (m.model_versions?.[0]?.total_cost ?? 0), 0);
   const isEmpty = models.length === 0;
 
-  // RLS-scoped quote count feeds the onboarding checklist (head-only, no rows returned).
-  const { count: quoteCount } = await supabase
-    .from("quotes")
-    .select("id", { count: "exact", head: true });
   const onboardingSteps = deriveOnboardingSteps({
     modelCount: models.length,
     quoteCount: quoteCount ?? 0,

@@ -2,6 +2,7 @@
 import "server-only";
 import { createServerClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requestCache } from "@/lib/request-cache";
 import type { Plan, SubscriptionSnapshot } from "@/lib/entitlements";
 
 export type SubscriptionRow = {
@@ -13,9 +14,10 @@ export type SubscriptionRow = {
   current_period_end: string | null;
 };
 
-export async function findActiveSubscriptionByOrg(
+/** Memoised per request, so the layout and page don't each re-query it. */
+export const findActiveSubscriptionByOrg = requestCache(async (
   orgId: string,
-): Promise<SubscriptionRow | null> {
+): Promise<SubscriptionRow | null> => {
   const supabase = await createServerClient();
   const { data, error } = await supabase
     .from("subscriptions")
@@ -24,7 +26,7 @@ export async function findActiveSubscriptionByOrg(
     .maybeSingle();
   if (error) throw error;
   return (data as SubscriptionRow | null) ?? null;
-}
+});
 
 /** Map a DB subscription row to the domain snapshot resolvePlan consumes. */
 export function toSnapshot(row: SubscriptionRow | null): SubscriptionSnapshot | null {

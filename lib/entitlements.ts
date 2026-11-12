@@ -137,6 +137,31 @@ export function isInTrial(
   return end !== null && now.getTime() < end.getTime();
 }
 
+export type TrialStatus =
+  | { state: "none" }
+  | { state: "active"; endsAt: Date; daysLeft: number }
+  | { state: "expired"; endsAt: Date };
+
+/**
+ * Where an org stands on its trial, for UI copy (sidebar chip, billing page).
+ * Only an unsubscribed, non-demo org has a trial at all; `daysLeft` rounds up
+ * so the last partial day reads "1 day left", never "0".
+ */
+export function trialStatus(input: {
+  subscription: SubscriptionSnapshot | null;
+  isDemo: boolean;
+  trialStartedAt?: Date | string | null;
+  now?: Date;
+}): TrialStatus {
+  if (resolvePlan(input) !== "free") return { state: "none" };
+  const endsAt = trialEndsAt(input.trialStartedAt);
+  if (!endsAt) return { state: "none" };
+  const now = input.now ?? new Date();
+  if (now.getTime() >= endsAt.getTime()) return { state: "expired", endsAt };
+  const daysLeft = Math.max(1, Math.ceil((endsAt.getTime() - now.getTime()) / 86_400_000));
+  return { state: "active", endsAt, daysLeft };
+}
+
 /**
  * The plan the app should actually enforce. Identical to `resolvePlan` except
  * that a `free` (unsubscribed) org is elevated to `team` while inside its

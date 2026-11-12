@@ -1,5 +1,6 @@
 import "server-only";
 import { createServerClient } from "@/lib/supabase/server";
+import { requestCache } from "@/lib/request-cache";
 
 export type CurrentOrg = {
   org_id: string;
@@ -14,8 +15,11 @@ export type CurrentOrg = {
   } | null;
 };
 
-/** The calling user's org membership (personal org, auto-created on signup). */
-export async function getCurrentOrg(): Promise<CurrentOrg | null> {
+/**
+ * The calling user's org membership (personal org, auto-created on signup).
+ * Memoised per request: the layout, the page and any action share one lookup.
+ */
+export const getCurrentOrg = requestCache(async (): Promise<CurrentOrg | null> => {
   const supabase = await createServerClient();
   const {
     data: { user },
@@ -27,4 +31,4 @@ export async function getCurrentOrg(): Promise<CurrentOrg | null> {
     .eq("user_id", user.id)
     .maybeSingle();
   return (data as CurrentOrg | null) ?? null;
-}
+});
